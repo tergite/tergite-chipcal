@@ -10,6 +10,21 @@ readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.26", "scipy>=1.11", "xarray>=2023.1", "matplotlib>=3.8"]
+keywords = ["reinforcement-learning", "llm-agents", "quantum-computing", "superconducting-qubits", "calibration",
+            "benchmark", "tergite"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/tergite/tergite-chipcal"
+Repository = "https://github.com/tergite/tergite-chipcal"
+Issues = "https://github.com/tergite/tergite-chipcal/issues"
+Dataset = "https://huggingface.co/datasets/tergite/tergite-chipcal"
 
 [project.optional-dependencies]
 llm = ["openai>=1.0"]
