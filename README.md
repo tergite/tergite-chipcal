@@ -12,8 +12,8 @@ finite-shot data and a plot.
 The score is a final randomized benchmark of the gates the agent leaves committed. The only way to score well is
 to build a good CZ gate.
 
-> **Physics model v0.1, not yet validated against hardware.** See [docs/physics.md](docs/physics.md) for what is
-> modelled and what is simplified. Expert review is welcome.
+> **Physics model v0.1, not validated against hardware.** See [docs/physics.md](docs/physics.md) for what is
+> modelled and what is simplified. Built with the help of AI coding assistants.
 
 **It needs a vision-language model.** After each measurement the agent receives a plot of the data as an image.
 For a text-only model, pass `--text-only` (or `--taskset.visual false` on the Prime Intellect hub); a text
@@ -61,6 +61,9 @@ python -m chipcal.run ... --text-only        # a text-only model: text analysis 
 
 `runs/demo/transcript.json` holds every turn, `runs/demo/run.json` holds the score, and `runs/demo/vision/`
 holds every plot the model was shown.
+
+To run on your own machine instead, [docs/local-ollama.md](docs/local-ollama.md) serves Qwen3.8 with vision
+through Ollama and starts an episode against it.
 
 This runner sends the model the system prompt and one self-contained observation per turn. The observation
 carries the committed configuration, a measurement notebook and the session history. Actions are JSON in

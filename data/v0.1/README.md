@@ -41,8 +41,9 @@ This dataset holds the evaluation chips: the full hidden parameters of every tes
 reported on the same devices. Every chip can be calibrated: a privileged oracle certifies that each of its
 couplers admits a CZ fidelity of at least 0.96, and the chip's per-coupler ceilings ship with it.
 
-> **Simulated data only.** No row describes a physical device. Physics model v0.1, not yet validated against
-> hardware; see the repository's docs/physics.md for what is modelled and simplified. Expert review is welcome.
+> **Simulated data only.** No row describes a physical device. Physics model v0.1, not validated against
+> hardware; see the repository's docs/physics.md for what is modelled and simplified. Built with the help of AI
+> coding assistants.
 
 ## Contents
 
