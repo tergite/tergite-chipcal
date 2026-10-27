@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tergite-chipcal"
+version = "0.1.0"
+description = "A simulated superconducting-qubit chip-calibration environment for LLM agents"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.26", "scipy>=1.11", "xarray>=2023.1", "matplotlib>=3.8"]
+
+[project.optional-dependencies]
+llm = ["openai>=1.0"]
+test = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+chipcal = ["benchmark/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: oracle searches and long simulations (minutes)"]

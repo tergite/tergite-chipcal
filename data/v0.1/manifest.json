@@ -1,0 +1,30 @@
+{
+  "files": {
+    "2q1c-test.jsonl": {
+      "chips": 100,
+      "first_seed": 3000000,
+      "seeds_scanned": 102,
+      "sha256": "3870291c4fd013d8cc5a00ce68f67686a7cd219b69ec7ca1d35c27a456e10b1c",
+      "tier": "2q1c"
+    },
+    "3q2c-test.jsonl": {
+      "chips": 100,
+      "first_seed": 3000000,
+      "seeds_scanned": 103,
+      "sha256": "a002aeb2c678a92a678528eeaaa3766ac7ff7ac39c4173fcdf9f47d8c52de6d8",
+      "tier": "3q2c"
+    },
+    "5q4c-test.jsonl": {
+      "chips": 100,
+      "first_seed": 3000000,
+      "seeds_scanned": 113,
+      "sha256": "5f0f9ea0339d1fc46c27457b9a0a8b04552bfe3a65922c9bb25b39175c117888",
+      "tier": "5q4c"
+    }
+  },
+  "generator": "chipcal-chips-v0.1",
+  "min_ceiling": 0.96,
+  "selection": "first seeds whose every coupler admits a CZ fidelity >= min_ceiling (privileged best-bias oracle, chipcal.baselines.oracle.coupler_best_ceiling)",
+  "split": "test",
+  "version": "v0.1"
+}

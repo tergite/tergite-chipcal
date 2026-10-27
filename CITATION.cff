@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+title: "tergite-chipcal: a simulated superconducting-qubit chip-calibration environment for LLM agents"
+message: "If you use this environment, please cite it as below."
+type: software
+license: Apache-2.0
+version: 0.1.0
+authors:
+  - name: "Chalmers Next Labs AB"
+keywords:
+  - reinforcement learning
+  - LLM agents
+  - superconducting qubits
+  - calibration
+  - benchmark
