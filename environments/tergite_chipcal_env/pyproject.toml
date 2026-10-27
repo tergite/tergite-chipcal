@@ -1,15 +1,19 @@
 [project]
-name = "tergite-chipcal"
+name = "tergite-chipcal-env"
 version = "0.1.0"
 description = "Calibrate a simulated superconducting-qubit chip: discovery, then CZ gates on every coupler"
 license = "Apache-2.0"
 requires-python = ">=3.10"
-dependencies = ["verifiers>=0.4.0", "tergite-chipcal"]
+dependencies = ["verifiers>=0.4.0", "tergite-chipcal @ git+https://github.com/tergite/tergite-chipcal.git"]
 tags = ["multi-turn", "vision", "physics", "quantum", "calibration", "agentic"]
 
 [build-system]
 requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
+# tergite-chipcal is installed from its repository (not on PyPI).
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [tool.hatch.build]
-include = ["tergite_chipcal.py", "pyproject.toml", "README.md"]
+include = ["tergite_chipcal_env.py", "pyproject.toml", "README.md"]

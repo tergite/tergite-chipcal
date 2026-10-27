@@ -1,4 +1,4 @@
-# tergite-chipcal
+# tergite-chipcal-env
 
 Calibrate a simulated superconducting-qubit chip, from first light to CZ gates, as a multi-turn verifiers
 environment. See the [tergite-chipcal repository](../../README.md) for the task, the action grammar and the score.

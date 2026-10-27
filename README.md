@@ -71,13 +71,13 @@ text, with guided decoding against the action schema when the server supports `r
 
 ### Prime Intellect Environments Hub / verifiers
 
-`environments/tergite_chipcal` is a verifiers (v1) environment. The environment plays the user's side of the
+`environments/tergite_chipcal_env` is a verifiers (v1) environment. The environment plays the user's side of the
 conversation: the first user turn is the full observation, and later turns are compact updates plus the plot
 of the latest measurement.
 
 ```bash
-pip install -e environments/tergite_chipcal
-prime env eval tergite-chipcal --taskset.tier 2q1c --taskset.n-chips 30
+pip install -e environments/tergite_chipcal_env
+prime env eval tergite-chipcal-env --taskset.tier 2q1c --taskset.n-chips 30
 ```
 
 The reward is `chip_score`, the score below. The metrics also report the score / ceiling, the true minimum
@@ -119,7 +119,7 @@ A procedural tier name works wherever a tier name does:
 
 ```bash
 python -m chipcal.run --tier 12q-hard --seed 1000042 --out runs/12q --base-url ... --model ...
-prime env eval tergite-chipcal --taskset.tier 8q-extreme --taskset.split train
+prime env eval tergite-chipcal-env --taskset.tier 8q-extreme --taskset.split train
 python scripts/generate_chips.py --tier 8q-hard --n 50 --out chips          # 50 chips, full parameters
 python scripts/generate_chips.py --tier 6q-hard --n 10 --min-ceiling 0.96 --workers 32 --out chips   # certified
 python scripts/evaluate.py --policy scripted --tier 8q-hard --data chips --n 10 --out results/8q

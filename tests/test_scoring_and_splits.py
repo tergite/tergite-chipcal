@@ -94,10 +94,10 @@ def test_normalized_score_compares_each_gate_with_its_own_ceiling():
 @pytest.mark.skipif(importlib.util.find_spec("verifiers") is None, reason="verifiers not installed")
 def test_verifiers_environment_resolves():
     import sys
-    sys.path.insert(0, str(ROOT / "environments" / "tergite_chipcal"))
+    sys.path.insert(0, str(ROOT / "environments" / "tergite_chipcal_env"))
     from verifiers.v1.utils.loaders import environment_class, taskset_class
-    import tergite_chipcal
-    assert taskset_class("tergite_chipcal") is tergite_chipcal.ChipcalTaskset
-    assert environment_class("tergite_chipcal") is tergite_chipcal.ChipcalEnv
-    tasks = tergite_chipcal.ChipcalTaskset(tergite_chipcal.ChipcalTasksetConfig(id="tergite_chipcal", n_chips=2)).load()
+    import tergite_chipcal_env
+    assert taskset_class("tergite_chipcal_env") is tergite_chipcal_env.ChipcalTaskset
+    assert environment_class("tergite_chipcal_env") is tergite_chipcal_env.ChipcalEnv
+    tasks = tergite_chipcal_env.ChipcalTaskset(tergite_chipcal_env.ChipcalTasksetConfig(id="tergite_chipcal_env", n_chips=2)).load()
     assert [t.data.seed for t in tasks] == [chip["seed"] for chip in splits.benchmark("2q1c")[:2]]

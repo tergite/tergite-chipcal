@@ -2,6 +2,7 @@ cff-version: 1.2.0
 title: "tergite-chipcal: a simulated superconducting-qubit chip-calibration environment for LLM agents"
 message: "If you use this environment, please cite it as below."
 type: software
+repository-code: "https://github.com/tergite/tergite-chipcal"
 license: Apache-2.0
 version: 0.1.0
 authors:

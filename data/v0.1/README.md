@@ -31,7 +31,7 @@ configs:
 
 **300 frozen, simulated superconducting-qubit chips for evaluating LLM agents that calibrate CZ gates from scratch.**
 
-[tergite-chipcal](<GITHUB_URL>) is a multi-turn agent environment. Each episode gives the agent an uncharacterised chip
+[tergite-chipcal](https://github.com/tergite/tergite-chipcal) is a multi-turn agent environment. Each episode gives the agent an uncharacterised chip
 of fixed-frequency transmons joined by flux-tunable couplers. The agent has to find every readout resonator and
 qubit frequency, then calibrate a CZ gate on every coupler. It works only through lab measurements such as
 spectroscopy, chevrons, Ramsey phase scans and randomized benchmarking, and each one costs simulated lab time.
@@ -72,7 +72,7 @@ Each row is one chip:
 
 ```python
 from datasets import load_dataset
-chips = load_dataset("<HF_ORG>/tergite-chipcal", "2q1c", split="test")
+chips = load_dataset("tergite/tergite-chipcal", "2q1c", split="test")
 ```
 
 To run episodes, rebuild the typed device with the tergite-chipcal package (`import chipcal`) and check the files against the manifest:
