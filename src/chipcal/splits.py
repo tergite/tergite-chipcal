@@ -120,8 +120,19 @@ def load(path: Path):
     return out
 
 
+def _same(a, b, rtol: float = 1e-12) -> bool:
+    """Equal JSON values, with floats equal to ``rtol``: CPUs and maths libraries differ in the last bit."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        return a.keys() == b.keys() and all(_same(a[k], b[k], rtol) for k in a)
+    if isinstance(a, list) and isinstance(b, list):
+        return len(a) == len(b) and all(_same(x, y, rtol) for x, y in zip(a, b))
+    if isinstance(a, float) or isinstance(b, float):
+        return isinstance(a, (int, float)) and isinstance(b, (int, float)) and abs(a - b) <= rtol * max(abs(a), abs(b))
+    return a == b
+
+
 def verify(directory: Path, regenerate: int = 3) -> list[str]:
-    """Checksums match, and the first ``regenerate`` chips of each file regenerate identically."""
+    """Checksums match, and the first ``regenerate`` chips of each file regenerate (to float rounding)."""
     problems = []
     manifest = json.loads((directory / "manifest.json").read_text())
     for name, info in manifest["files"].items():
@@ -131,8 +142,8 @@ def verify(directory: Path, regenerate: int = 3) -> list[str]:
         for line in text.splitlines()[:regenerate]:
             stored = json.loads(line)
             stored.pop("ceiling", None)
-            if _line(row(stored["tier"], stored["seed"])) != _line(stored):
-                problems.append(f"{name}: seed {stored['seed']} no longer regenerates identically")
+            if not _same(json.loads(_line(row(stored["tier"], stored["seed"]))), stored):
+                problems.append(f"{name}: seed {stored['seed']} no longer regenerates")
     return problems
 
 
