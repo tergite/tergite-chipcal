@@ -7,8 +7,9 @@ ends when the model emits {"stop": true}, at the tier's turn cap, or when the si
 budget runs out. The environment then benchmarks every coupler's final gate with interleaved RB; the reward
 is the minimum, over all couplers, of those fitted fidelities (chipcal.scoring).
 
-    prime env eval tergite-chipcal-env --taskset.tier 2q1c --taskset.n-chips 30 ...
-    prime env eval tergite-chipcal-env --taskset.tier 8q-hard --taskset.split train ...    (procedural chip)
+    prime env install tergite/tergite-chipcal-env
+    vf-eval tergite-chipcal-env -m <model> --env.taskset.tier 2q1c --env.taskset.n-chips 30
+    vf-eval tergite-chipcal-env -m <model> --env.taskset.tier 8q-hard --env.taskset.split train    (procedural chip)
 
 Actions are JSON in text: there is no tool calling. Guided decoding (JSON schema) is not applied on
 this path; a reply that does not parse costs one turn and is shown back as an invalid action.

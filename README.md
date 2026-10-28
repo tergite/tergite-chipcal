@@ -16,7 +16,7 @@ to build a good CZ gate.
 > modelled and what is simplified. Built with the help of AI coding assistants.
 
 **It needs a vision-language model.** After each measurement the agent receives a plot of the data as an image.
-For a text-only model, pass `--text-only` (or `--taskset.visual false` on the Prime Intellect hub); a text
+For a text-only model, pass `--text-only` (or `--env.taskset.visual false` with `vf-eval`); a text
 analysis of the same data then replaces the plot. To see exactly what a model receives, export it without a
 model ([below](#see-what-the-model-sees)).
 
@@ -43,11 +43,13 @@ model ([below](#see-what-the-model-sees)).
 ## Install
 
 ```bash
-pip install -e .            # numpy, scipy, xarray, matplotlib
-pip install -e ".[llm]"     # + openai, for running a model
+pip install tergite-chipcal              # numpy, scipy, xarray, matplotlib
+pip install "tergite-chipcal[llm]"       # + openai, for running a model
 ```
 
-The distribution is `tergite-chipcal`; the Python package is imported as `chipcal`.
+The distribution is `tergite-chipcal`; the Python package is imported as `chipcal`. The scripts in `scripts/` and the
+frozen chip files in `data/` come with a clone of this repository (`pip install -e ".[llm,test]"`); the chips are
+also on Hugging Face as [tergite/tergite-chipcal](https://huggingface.co/datasets/tergite/tergite-chipcal).
 
 ## Run a model
 
@@ -76,8 +78,8 @@ conversation: the first user turn is the full observation, and later turns are c
 of the latest measurement.
 
 ```bash
-pip install -e environments/tergite_chipcal_env
-prime env eval tergite-chipcal-env --taskset.tier 2q1c --taskset.n-chips 30
+prime env install tergite/tergite-chipcal-env       # from the Hub; or: pip install -e environments/tergite_chipcal_env
+vf-eval tergite-chipcal-env -m <model> --env.taskset.tier 2q1c --env.taskset.n-chips 30
 ```
 
 The reward is `chip_score`, the score below. The metrics also report the score / ceiling, the true minimum
@@ -119,7 +121,7 @@ A procedural tier name works wherever a tier name does:
 
 ```bash
 python -m chipcal.run --tier 12q-hard --seed 1000042 --out runs/12q --base-url ... --model ...
-prime env eval tergite-chipcal-env --taskset.tier 8q-extreme --taskset.split train
+vf-eval tergite-chipcal-env -m <model> --env.taskset.tier 8q-extreme --env.taskset.split train
 python scripts/generate_chips.py --tier 8q-hard --n 50 --out chips          # 50 chips, full parameters
 python scripts/generate_chips.py --tier 6q-hard --n 10 --min-ceiling 0.96 --workers 32 --out chips   # certified
 python scripts/evaluate.py --policy scripted --tier 8q-hard --data chips --n 10 --out results/8q
