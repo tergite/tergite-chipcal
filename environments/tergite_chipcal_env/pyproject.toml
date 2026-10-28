@@ -1,6 +1,6 @@
 [project]
 name = "tergite-chipcal-env"
-version = "0.1.0"
+version = "0.1.1"
 description = "Calibrate a simulated superconducting-qubit chip: discovery, then CZ gates on every coupler"
 license = "Apache-2.0"
 requires-python = ">=3.10"

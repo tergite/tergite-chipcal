@@ -130,6 +130,11 @@ characterised, and exploration is welcome.
 - The simulator started from the pulse-level simulator in [tergite-backend](https://github.com/tergite/tergite-backend)
   and was extended to three-level transmons in a qubit-coupler-qubit system.
 
+Tergite is developed by a core group of collaborators; Chalmers Next Labs AB (CNL) manages and maintains this
+project. We are grateful for the collaboration of Chalmers Next Labs AB – WACQT Quantum Technology Testbed, and of
+the Quantum Technology Laboratory (QTL) and the Applied Quantum Physics Laboratory (AQP) at Chalmers University of
+Technology, MC2.
+
 **Owner:** Chalmers Next Labs AB · **Created:** 2026-10-26 · **License:** Apache-2.0
 
 ## Citation
@@ -139,6 +144,6 @@ characterised, and exploration is welcome.
   title   = {tergite-chipcal: a simulated superconducting-qubit chip-calibration environment for LLM agents},
   author  = {{Chalmers Next Labs AB}},
   year    = {2026},
-  version = {0.1.0}
+  version = {0.1.1}
 }
 ```

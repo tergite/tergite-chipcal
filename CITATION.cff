@@ -4,7 +4,7 @@ message: "If you use this environment, please cite it as below."
 type: software
 repository-code: "https://github.com/tergite/tergite-chipcal"
 license: Apache-2.0
-version: 0.1.0
+version: 0.1.1
 authors:
   - name: "Chalmers Next Labs AB"
 keywords:

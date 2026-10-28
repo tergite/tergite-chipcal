@@ -230,6 +230,18 @@ See [docs/physics.md](docs/physics.md) for what is modelled and simplified, and
 [docs/parameters.md](docs/parameters.md) for every sampled range and its published source.
 [docs/examples.md](docs/examples.md) walks through one successful calibration, turn by turn.
 
+## Development
+
+Tergite is developed by a core group of collaborators. [Chalmers Next Labs AB (CNL)](https://chalmersnextlabs.se/) takes on the
+role of managing and maintaining this project.
+
+We are grateful for the collaboration of:
+
+- [Chalmers Next Labs AB](https://chalmersnextlabs.se/) – WACQT Quantum Technology Testbed
+- Chalmers University of Technology, MC2 –
+  [Quantum Technology Laboratory (QTL)](https://www.chalmers.se/en/departments/mc2/research/quantum-technology/)
+- Chalmers University of Technology, MC2 – [Applied Quantum Physics Laboratory (AQP)](https://github.com/aqp-mc2-chalmers)
+
 ## Acknowledgements
 
 This project was sponsored by:
