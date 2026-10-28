@@ -1,0 +1,14 @@
+{
+  "name": "Stop immediately",
+  "kind": "code",
+  "track": "baseline",
+  "tier": "2q1c",
+  "benchmark": "v0.1",
+  "chipcal_version": "0.1.0",
+  "date": "2026-10-28",
+  "submitter": "tergite-chipcal maintainers",
+  "policy": "probe:stop_immediately",
+  "settings": {},
+  "notes": "Reward-validity probe (chipcal.baselines.probes).",
+  "link": null
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Scripted calibration routine",
+  "kind": "code",
+  "track": "baseline",
+  "tier": "2q1c",
+  "benchmark": "v0.1",
+  "chipcal_version": "0.1.0",
+  "date": "2026-10-27",
+  "submitter": "tergite-chipcal maintainers",
+  "policy": "scripted",
+  "settings": {},
+  "notes": "Conventional bring-up from its own measurements (chipcal.baselines.scripted); search ranges tuned on chips of this simulator's distribution.",
+  "link": null
+}

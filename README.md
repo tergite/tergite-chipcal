@@ -28,6 +28,8 @@ model ([below](#see-what-the-model-sees)).
   CZ fidelity of at least 0.96. Each chip ships with its ceiling, and results are reported against it.
 - **A verifiable reward.** Hidden device parameters never reach the agent, its own benchmarks do not count, and
   degenerate policies score 0 ([docs/scoring.md](docs/scoring.md)).
+- **An open, checkable leaderboard.** Entries are pull requests carrying every episode's actions; the simulator
+  is deterministic, so CI replays them to confirm the scores ([LEADERBOARD.md](LEADERBOARD.md)).
 - **A real calibration workflow.** The measurement nodes and the CZ calibration chain follow the
   [tergite-autocalibration](https://github.com/tergite/tergite-autocalibration) repository. The simulator started
   from the pulse-level simulator in [tergite-backend](https://github.com/tergite/tergite-backend); its Hamiltonian
@@ -199,14 +201,16 @@ and 5q4c tiers ship as harder settings with the same score.
 
 | Policy (2q1c) | Chips × samples | Score: min final-RB F, mean (95 % CI) | Score / ceiling | Calibrated (F ≥ 0.95) | Parse failures / turn |
 |---|---|---|---|---|---|
-| Stop immediately | 12 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 12 | – |
-| Random valid actions | 12 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 12 | – |
-| Discovery, then a blind default gate | 12 × 1 | 0.294 (0.250–0.381) | 0.298 | 0 / 12 | – |
+| Stop immediately | 100 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 100 | – |
+| Random valid actions | 100 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 100 | – |
+| Discovery, then a blind default gate | 100 × 1 | 0.255 (0.250–0.266) | 0.259 | 0 / 100 | – |
 | Scripted calibration routine | 100 × 1 | 0.853 (0.807–0.892) | 0.866 | 44 / 100 | – |
 | Qwen3.8-27B, no strategy prompt (pilot)<sup>†</sup> | 8 × 1 | 0.331 (0.250–0.493) | 0.337 | 0 / 8 | 0.003 |
 | *Physics ceiling (privileged oracle, best bias and pulse)* | *100* | *median 0.986 (0.961–0.996)* | *1* | *100 / 100* | – |
 
-The scripted routine runs on all 100 chips; the probe rows cover the first 12 and Qwen the first 8 (a pilot).
+Every row runs on all 100 chips except Qwen, a pilot on the first 8 with pre-release code. The
+[leaderboard](LEADERBOARD.md) holds the verified entries; [leaderboard/README.md](leaderboard/README.md) explains
+how to submit one.
 Every chip can be calibrated, yet the scripted routine calibrates 44 of 100: the gap to the ceiling is the
 agent's, not the physics'. The scripted routine reads only its own measurements; its search ranges were tuned on
 chips of this simulator's distribution.

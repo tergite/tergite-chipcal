@@ -92,12 +92,13 @@ measures calibration from measurements.
 
 ## Baselines (2q1c)
 
-The scripted routine on all 100 chips; the other rows are pilots on the first 12 chips (Qwen: first 8).
+All rows on the 100 chips except Qwen, a pilot on the first 8; verified entries are on the
+[leaderboard](https://github.com/tergite/tergite-chipcal/blob/main/LEADERBOARD.md).
 Score / ceiling divides each final gate by the best its coupler admits.
 
 | Policy | Score: min final-RB F, mean (95 % CI) | Score / ceiling | Calibrated (F ≥ 0.95) |
 |---|---|---|---|
-| Discovery, then a blind default gate | 0.294 (0.250–0.381) | 0.298 | 0 / 12 |
+| Discovery, then a blind default gate | 0.255 (0.250–0.266) | 0.259 | 0 / 100 |
 | Scripted calibration routine | 0.853 (0.807–0.892) | 0.866 | 44 / 100 |
 | Qwen3.8-27B, no strategy prompt | 0.331 (0.250–0.493) | 0.337 | 0 / 8 |
 | *Privileged oracle (physics ceiling)* | *median 0.986 (0.961–0.996)* | *1* | *100 / 100* |

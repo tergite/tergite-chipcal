@@ -286,7 +286,9 @@ class OneQubitDiscovery:
         values = np.asarray(frequencies, dtype=float)
         lo = self.lo[channel]
         worst = float(values[int(np.argmax(np.abs(values-lo)))])
-        if abs(worst-lo) > self.settings.max_if_hz + 1e-6:
+        # The boundary is included to 1 Hz: well above float rounding (about 1e-6 Hz at 5 GHz), which differs
+        # between CPUs and maths libraries and would otherwise decide a scan that ends exactly on the band edge.
+        if abs(worst-lo) > self.settings.max_if_hz + 1.:
             raise ValueError(
                 f"RF {worst:.6g} Hz is outside the {channel} LO signed IF band "
                 f"[{lo-self.settings.max_if_hz:.6g}, {lo+self.settings.max_if_hz:.6g}] Hz "

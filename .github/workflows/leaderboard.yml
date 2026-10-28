@@ -1,0 +1,39 @@
+name: leaderboard
+# Checks leaderboard submissions: every folder validates, LEADERBOARD.md matches the submissions, and the scores of
+# 2 chips of each new or changed submission are recomputed by replaying its actions (or rerunning a code policy).
+on:
+  pull_request:
+    paths: ["leaderboard/**", "LEADERBOARD.md", "scripts/leaderboard.py"]
+  push:
+    branches: [main]
+    paths: ["leaderboard/**", "LEADERBOARD.md", "scripts/leaderboard.py"]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - run: python scripts/leaderboard.py validate
+      - run: python scripts/leaderboard.py render --check
+      # A replay is exact only under the tergite-chipcal version the entry ran with, so each changed submission is
+      # verified in a fresh environment holding that version from PyPI.
+      - name: Replay changed submissions under their declared version
+        if: github.event_name == 'pull_request'
+        env:
+          CHIPCAL_SIM_WORKERS: "4"
+          OMP_NUM_THREADS: "1"
+        run: |
+          changed=$(git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" -- leaderboard/submissions \
+            | cut -d/ -f1-3 | sort -u | while read -r d; do [ -d "$d" ] && echo "$d"; done)
+          for d in $changed; do
+            version=$(python -c "import json, sys; print(json.load(open(sys.argv[1]))['chipcal_version'])" "$d/meta.json")
+            python -m venv "/tmp/chipcal-$version" && "/tmp/chipcal-$version/bin/pip" install -q "tergite-chipcal==$version"
+            (cd /tmp && "/tmp/chipcal-$version/bin/python" "$GITHUB_WORKSPACE/scripts/leaderboard.py" verify \
+              "$GITHUB_WORKSPACE/$d" --chips 2)
+          done
