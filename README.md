@@ -230,6 +230,17 @@ See [docs/physics.md](docs/physics.md) for what is modelled and simplified, and
 [docs/parameters.md](docs/parameters.md) for every sampled range and its published source.
 [docs/examples.md](docs/examples.md) walks through one successful calibration, turn by turn.
 
+## Related work
+
+This environment was inspired by NVIDIA's work on AI for quantum calibration: the QCalEval benchmark
+(S. Cao et al., "QCalEval: Benchmarking Vision-Language Models for Quantum Calibration Plot Understanding",
+[arXiv:2604.25884](https://arxiv.org/abs/2604.25884), 2026; [dataset](https://huggingface.co/datasets/nvidia/QCalEval))
+and the NVIDIA Ising Calibration models
+([Ising Calibration 1.5](https://huggingface.co/nvidia/Ising-Calibration-1.5-31B-BF16)). QCalEval asks a model to
+interpret a single calibration plot; tergite-chipcal asks it to run the whole calibration of a chip, choosing each
+measurement and acting on what it sees. No code, data or prompts from QCalEval or the Ising Calibration models are
+used here.
+
 ## Development
 
 Tergite is developed by a core group of collaborators. [Chalmers Next Labs AB (CNL)](https://chalmersnextlabs.se/) takes on the
@@ -251,3 +262,6 @@ This project was sponsored by:
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).
+
+Model and product names (such as NVIDIA Ising Calibration, Gemma and Qwen) belong to their respective owners. They
+are used only to identify the work and the models referred to; no affiliation or endorsement is implied.
