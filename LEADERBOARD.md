@@ -20,7 +20,7 @@ Partial entries (not every frozen chip; not ranked):
 |---|---|---|---|---|---|---|---|---|---|---|
 | – | [Gemma 4 31B (base of Ising Calibration 1.5)](leaderboard/submissions/2026-10-29-gemma-4-31b-it) | raw | 10 × 1 | 0.437 (0.221–0.653) | 0.444 | 2 / 10 | 0.078 | 0.000 | actions, replayable | 2026-10-29 |
 | – | [Qwen3.8-27B (pilot)](leaderboard/submissions/2026-10-23-qwen3.8-27b-pilot) | raw | 8 × 1 | 0.331 (0.250–0.493) | 0.337 | 0 / 8 | 0.049 | 0.003 | actions, replayable | 2026-10-23 |
-| – | [NVIDIA Ising Calibration 1.5 (31B)](leaderboard/submissions/2026-10-29-ising-calibration-1.5) | raw | 10 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 10 | 0.058 | 0.000 | actions, replayable | 2026-10-29 |
+| – | [NVIDIA Ising Calibration 1.5 (31B)](leaderboard/submissions/2026-10-29-ising-calibration-1.5) (score pending: the model produced no reasoning tokens) | raw | 10 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 10 | 0.058 | 0.000 | actions, replayable | 2026-10-29 |
 
 Tracks: **raw**: task description only; **guided**: with a disclosed strategy prompt; **baseline**: code baseline, no model.
 

@@ -1,12 +1,13 @@
 name: leaderboard
-# Checks leaderboard submissions: every folder validates, LEADERBOARD.md matches the submissions, and the scores of
-# 2 chips of each new or changed submission are recomputed by replaying its actions (or rerunning a code policy).
+# Checks leaderboard submissions: every folder validates, LEADERBOARD.md and the README chart match the
+# submissions, and the scores of 2 chips of each new or changed submission are recomputed by replaying its actions
+# (or rerunning a code policy).
 on:
   pull_request:
-    paths: ["leaderboard/**", "LEADERBOARD.md", "scripts/leaderboard.py"]
+    paths: ["leaderboard/**", "LEADERBOARD.md", "docs/leaderboard-*.svg", "scripts/leaderboard.py"]
   push:
     branches: [main]
-    paths: ["leaderboard/**", "LEADERBOARD.md", "scripts/leaderboard.py"]
+    paths: ["leaderboard/**", "LEADERBOARD.md", "docs/leaderboard-*.svg", "scripts/leaderboard.py"]
 jobs:
   check:
     runs-on: ubuntu-latest

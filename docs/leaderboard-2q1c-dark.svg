@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="514" viewBox="0 0 880 514" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" role="img" aria-label="tergite-chipcal 2q1c leaderboard: mean score with 95 % confidence interval per entry">
+<text x="16" y="26" font-size="15" font-weight="600" fill="#f0f6fc">tergite-chipcal leaderboard · 2q1c</text>
+<text x="16" y="46" font-size="12" fill="#9198a1">Score: minimum final-RB CZ fidelity over couplers, mean over the frozen chips with 95 % CI. Higher is better.</text>
+<circle cx="21" cy="70" r="5" fill="#3987e5"/>
+<text x="32" y="74" font-size="12" fill="#9198a1">language model</text>
+<circle cx="146.0" cy="70" r="5" fill="#9198a1"/>
+<text x="157.0" y="74" font-size="12" fill="#9198a1">code baseline</text>
+<rect x="255.8" y="65" width="18" height="10" rx="2" fill="#3987e5" fill-opacity="0.28"/>
+<line x1="264.8" y1="65" x2="264.8" y2="75" stroke="#3987e5" stroke-width="2"/>
+<text x="279.8" y="74" font-size="12" fill="#9198a1">physics ceiling</text>
+<line x1="333.7" y1="96" x2="333.7" y2="462" stroke="#2a3038" stroke-width="1"/>
+<text x="333.7" y="480" font-size="11" text-anchor="middle" fill="#7d8590">0</text>
+<line x1="431.5" y1="96" x2="431.5" y2="462" stroke="#2a3038" stroke-width="1"/>
+<text x="431.5" y="480" font-size="11" text-anchor="middle" fill="#7d8590">0.25</text>
+<line x1="529.3" y1="96" x2="529.3" y2="462" stroke="#2a3038" stroke-width="1"/>
+<text x="529.3" y="480" font-size="11" text-anchor="middle" fill="#7d8590">0.5</text>
+<line x1="627.1" y1="96" x2="627.1" y2="462" stroke="#2a3038" stroke-width="1"/>
+<text x="627.1" y="480" font-size="11" text-anchor="middle" fill="#7d8590">0.75</text>
+<line x1="724.9" y1="96" x2="724.9" y2="462" stroke="#2a3038" stroke-width="1"/>
+<text x="724.9" y="480" font-size="11" text-anchor="middle" fill="#7d8590">1</text>
+<text x="529.3" y="500" font-size="11" text-anchor="middle" fill="#9198a1">score (min final-RB fidelity)</text>
+<line x1="431.5" y1="90" x2="431.5" y2="462" stroke="#7d8590" stroke-width="1"/>
+<text x="435.5" y="88" font-size="11" text-anchor="start" fill="#9198a1">0.25: fully depolarising gate</text>
+<line x1="705.3" y1="90" x2="705.3" y2="462" stroke="#7d8590" stroke-width="1"/>
+<text x="701.3" y="88" font-size="11" text-anchor="end" fill="#9198a1">calibrated: F ≥ 0.95</text>
+<text x="16" y="115.0" font-size="13" font-style="italic" fill="#f0f6fc">Physics ceiling (privileged oracle)</text>
+<text x="16" y="130.0" font-size="11" fill="#7d8590">100 chips · best bias and pulse</text>
+<rect x="709.5" y="109.0" width="13.8" height="18" rx="3" fill="#3987e5" fill-opacity="0.28"/>
+<line x1="719.4" y1="109.0" x2="719.4" y2="127.0" stroke="#3987e5" stroke-width="2" stroke-linecap="round"/>
+<text x="864" y="115.0" font-size="13" font-weight="600" text-anchor="end" style="font-variant-numeric: tabular-nums" fill="#f0f6fc">0.986</text>
+<text x="864" y="130.0" font-size="11" text-anchor="end" fill="#7d8590">100 / 100 calibratable</text>
+<line x1="16" y1="140" x2="864" y2="140" stroke="#2a3038" stroke-width="1" stroke-opacity="0.6"/>
+<text x="16" y="159.0" font-size="13" fill="#f0f6fc">Scripted calibration routine</text>
+<text x="16" y="174.0" font-size="11" fill="#7d8590">100 chips · baseline</text>
+<line x1="649.5" y1="162.0" x2="682.8" y2="162.0" stroke="#9198a1" stroke-width="2" stroke-linecap="round" stroke-opacity="0.55"/>
+<circle cx="667.3" cy="162.0" r="5" fill="#9198a1" stroke="#0d1117" stroke-width="2"/>
+<text x="864" y="159.0" font-size="13" font-weight="600" text-anchor="end" style="font-variant-numeric: tabular-nums" fill="#f0f6fc">0.853</text>
+<text x="864" y="174.0" font-size="11" text-anchor="end" fill="#7d8590">44 / 100 calibrated</text>
+<line x1="16" y1="184" x2="864" y2="184" stroke="#2a3038" stroke-width="1" stroke-opacity="0.6"/>
+<text x="16" y="203.0" font-size="13" fill="#f0f6fc">Gemma 4 31B (base of Ising Calibration 1.5)</text>
+<text x="16" y="218.0" font-size="11" fill="#7d8590">10 of 100 chips, partial · raw</text>
+<line x1="420.1" y1="206.0" x2="589.1" y2="206.0" stroke="#3987e5" stroke-width="2" stroke-linecap="round" stroke-opacity="0.55"/>
+<circle cx="504.6" cy="206.0" r="5" fill="#3987e5" stroke="#0d1117" stroke-width="2"/>
+<text x="864" y="203.0" font-size="13" font-weight="600" text-anchor="end" style="font-variant-numeric: tabular-nums" fill="#f0f6fc">0.437</text>
+<text x="864" y="218.0" font-size="11" text-anchor="end" fill="#7d8590">2 / 10 calibrated</text>
+<line x1="16" y1="228" x2="864" y2="228" stroke="#2a3038" stroke-width="1" stroke-opacity="0.6"/>
+<text x="16" y="247.0" font-size="13" fill="#f0f6fc">Qwen3.8-27B (pilot)</text>
+<text x="16" y="262.0" font-size="11" fill="#7d8590">8 of 100 chips, partial · raw</text>
+<line x1="431.5" y1="250.0" x2="526.7" y2="250.0" stroke="#3987e5" stroke-width="2" stroke-linecap="round" stroke-opacity="0.55"/>
+<circle cx="463.2" cy="250.0" r="5" fill="#3987e5" stroke="#0d1117" stroke-width="2"/>
+<text x="864" y="247.0" font-size="13" font-weight="600" text-anchor="end" style="font-variant-numeric: tabular-nums" fill="#f0f6fc">0.331</text>
+<text x="864" y="262.0" font-size="11" text-anchor="end" fill="#7d8590">0 / 8 calibrated</text>
+<line x1="16" y1="272" x2="864" y2="272" stroke="#2a3038" stroke-width="1" stroke-opacity="0.6"/>
+<text x="16" y="291.0" font-size="13" fill="#f0f6fc">Discovery, then a blind default gate</text>
+<text x="16" y="306.0" font-size="11" fill="#7d8590">100 chips · baseline</text>
+<line x1="431.5" y1="294.0" x2="437.7" y2="294.0" stroke="#9198a1" stroke-width="2" stroke-linecap="round" stroke-opacity="0.55"/>
+<circle cx="433.6" cy="294.0" r="5" fill="#9198a1" stroke="#0d1117" stroke-width="2"/>
+<text x="864" y="291.0" font-size="13" font-weight="600" text-anchor="end" style="font-variant-numeric: tabular-nums" fill="#f0f6fc">0.255</text>
+<text x="864" y="306.0" font-size="11" text-anchor="end" fill="#7d8590">0 / 100 calibrated</text>
+<line x1="16" y1="316" x2="864" y2="316" stroke="#2a3038" stroke-width="1" stroke-opacity="0.6"/>
+<text x="16" y="335.0" font-size="13" fill="#f0f6fc">NVIDIA Ising Calibration 1.5 (31B)</text>
+<text x="16" y="350.0" font-size="11" fill="#7d8590">10 of 100 chips, partial · raw</text>
+<text x="16" y="364.0" font-size="11" font-style="italic" fill="#9198a1">score pending: the model produced no reasoning tokens</text>
+<circle cx="333.7" cy="338.0" r="4.5" fill="#0d1117" stroke="#3987e5" stroke-width="2"/>
+<text x="864" y="335.0" font-size="13" font-weight="600" text-anchor="end" style="font-variant-numeric: tabular-nums" fill="#f0f6fc">0.000</text>
+<text x="864" y="350.0" font-size="11" text-anchor="end" fill="#7d8590">0 / 10 calibrated</text>
+<line x1="16" y1="374" x2="864" y2="374" stroke="#2a3038" stroke-width="1" stroke-opacity="0.6"/>
+<text x="16" y="393.0" font-size="13" fill="#f0f6fc">Random valid actions</text>
+<text x="16" y="408.0" font-size="11" fill="#7d8590">100 chips · baseline</text>
+<circle cx="333.7" cy="396.0" r="5" fill="#9198a1" stroke="#0d1117" stroke-width="2"/>
+<text x="864" y="393.0" font-size="13" font-weight="600" text-anchor="end" style="font-variant-numeric: tabular-nums" fill="#f0f6fc">0.000</text>
+<text x="864" y="408.0" font-size="11" text-anchor="end" fill="#7d8590">0 / 100 calibrated</text>
+<line x1="16" y1="418" x2="864" y2="418" stroke="#2a3038" stroke-width="1" stroke-opacity="0.6"/>
+<text x="16" y="437.0" font-size="13" fill="#f0f6fc">Stop immediately</text>
+<text x="16" y="452.0" font-size="11" fill="#7d8590">100 chips · baseline</text>
+<circle cx="333.7" cy="440.0" r="5" fill="#9198a1" stroke="#0d1117" stroke-width="2"/>
+<text x="864" y="437.0" font-size="13" font-weight="600" text-anchor="end" style="font-variant-numeric: tabular-nums" fill="#f0f6fc">0.000</text>
+<text x="864" y="452.0" font-size="11" text-anchor="end" fill="#7d8590">0 / 100 calibrated</text>
+</svg>

@@ -2,6 +2,13 @@
 
 **Calibrate a simulated superconducting-qubit chip, end to end, from first light to CZ gates.**
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/leaderboard-2q1c-dark.svg">
+  <img alt="tergite-chipcal 2q1c leaderboard: mean score with 95 % CI for every entry, beside the physics ceiling" src="docs/leaderboard-2q1c-light.svg">
+</picture>
+
+The [leaderboard](LEADERBOARD.md) on the 2q1c tier. Generated from the submissions by `python scripts/leaderboard.py render`.
+
 tergite-chipcal is a multi-turn environment for LLM agents and RL, built on a physics simulator of fixed-frequency
 transmons joined by flux-tunable couplers. An episode hands the agent an uncharacterised chip. The agent must
 first find every qubit's readout resonator and transition frequencies, then calibrate a CZ gate on every coupler.
@@ -207,7 +214,7 @@ and 5q4c tiers ship as harder settings with the same score.
 | Scripted calibration routine | 100 × 1 | 0.853 (0.807–0.892) | 0.866 | 44 / 100 | – |
 | [Qwen3.8-27B](leaderboard/submissions/2026-10-23-qwen3.8-27b-pilot), no strategy prompt (pilot)<sup>†</sup> | 8 × 1 | 0.331 (0.250–0.493) | 0.337 | 0 / 8 | 0.003 |
 | [Gemma 4 31B](leaderboard/submissions/2026-10-29-gemma-4-31b-it) (base of Ising 1.5), no strategy prompt<sup>‡</sup> | 10 × 1 | 0.437 (0.221–0.653) | 0.444 | 2 / 10 | 0.000 |
-| [NVIDIA Ising Calibration 1.5](leaderboard/submissions/2026-10-29-ising-calibration-1.5) (31B), no strategy prompt<sup>‡</sup> | 10 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 10 | 0.000 |
+| [NVIDIA Ising Calibration 1.5](leaderboard/submissions/2026-10-29-ising-calibration-1.5) (31B), no strategy prompt, score pending: no reasoning tokens produced<sup>‡</sup> | 10 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 10 | 0.000 |
 | *Physics ceiling (privileged oracle, best bias and pulse)* | *100* | *median 0.986 (0.961–0.996)* | *1* | *100 / 100* | – |
 
 Every row runs on all 100 chips except the models: Qwen, a pilot on the first 8 with pre-release code, and
@@ -229,7 +236,8 @@ Every turn of the pilot (prompt state, model output including its thinking, acti
 on Hugging Face ([transcripts](https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/2q1c/2026-10-23-qwen3.8-27b-pilot)).
 It ran on pre-release code; its actions, in the linked leaderboard folder, replay to the recorded scores on v0.1.1.
 
-<sup>‡</sup> **Note on the Ising Calibration 1.5 row.** The model produced no thinking. It ran in the same harness as
+<sup>‡</sup> **Note on the Ising Calibration 1.5 row: the score is pending.** The model produced no reasoning tokens,
+and we will rerun it if a version or setting that reasons becomes available. It ran in the same harness as
 Qwen, with thinking switched on and a 4096-token thinking budget (vision on, temperature 0.2 as on its model card,
 [`nvidia/Ising-Calibration-1.5-31B-BF16`](https://huggingface.co/nvidia/Ising-Calibration-1.5-31B-BF16)), but on
 every turn its thought channel was empty and it answered at once. This is the model, not the harness: served

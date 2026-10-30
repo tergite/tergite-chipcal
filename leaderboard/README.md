@@ -36,7 +36,8 @@ python scripts/leaderboard.py verify leaderboard/submissions/2026-11-01-my-model
 python scripts/leaderboard.py render
 ```
 
-Commit the folder and the regenerated `LEADERBOARD.md`, and open a pull request.
+`render` rewrites `LEADERBOARD.md` and the chart at the top of the main README (`docs/leaderboard-2q1c-*.svg`).
+Commit the folder and the regenerated files, and open a pull request.
 
 ## How entries are checked
 

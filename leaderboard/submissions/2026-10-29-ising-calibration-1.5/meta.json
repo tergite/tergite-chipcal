@@ -16,5 +16,6 @@
     "serving": "vLLM 0.28.0, reasoning parser gemma4"
   },
   "notes": "First 10 frozen chips. The model produced no thinking: its thought channel was empty on every turn.",
-  "link": "https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/2q1c/2026-10-29-ising-calibration-1.5"
+  "link": "https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/2q1c/2026-10-29-ising-calibration-1.5",
+  "caveat": "score pending: the model produced no reasoning tokens"
 }
