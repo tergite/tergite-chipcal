@@ -1,0 +1,20 @@
+{
+  "name": "Gemma 4 31B (base of Ising Calibration 1.5)",
+  "kind": "model",
+  "track": "raw",
+  "tier": "2q1c",
+  "benchmark": "v0.1",
+  "chipcal_version": "0.1.1",
+  "date": "2026-10-29",
+  "submitter": "tergite-chipcal maintainers",
+  "model": "google/gemma-4-31B-it",
+  "settings": {
+    "temperature": 0.2,
+    "thinking_tokens": 4096,
+    "visual": true,
+    "model_revision": "842da3794eaa0b77d5f08bae87a17459d91ff475",
+    "serving": "vLLM 0.28.0, reasoning parser gemma4"
+  },
+  "notes": "First 10 frozen chips. Control for the Ising Calibration 1.5 entry: same harness and settings.",
+  "link": "https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/2q1c/2026-10-29-gemma-4-31b-it"
+}
