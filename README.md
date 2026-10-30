@@ -206,11 +206,12 @@ and 5q4c tiers ship as harder settings with the same score.
 | Discovery, then a blind default gate | 100 × 1 | 0.255 (0.250–0.266) | 0.259 | 0 / 100 | – |
 | Scripted calibration routine | 100 × 1 | 0.853 (0.807–0.892) | 0.866 | 44 / 100 | – |
 | [Qwen3.8-27B](leaderboard/submissions/2026-10-23-qwen3.8-27b-pilot), no strategy prompt (pilot)<sup>†</sup> | 8 × 1 | 0.331 (0.250–0.493) | 0.337 | 0 / 8 | 0.003 |
+| Gemma 4 31B (base of Ising 1.5), no strategy prompt<sup>‡</sup> | 10 × 1 | 0.437 (0.222–0.652) | 0.444 | 2 / 10 | 0.000 |
 | NVIDIA Ising Calibration 1.5 (31B), no strategy prompt<sup>‡</sup> | 10 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 10 | 0.000 |
 | *Physics ceiling (privileged oracle, best bias and pulse)* | *100* | *median 0.986 (0.961–0.996)* | *1* | *100 / 100* | – |
 
-Every row runs on all 100 chips except the two models: Qwen, a pilot on the first 8 with pre-release code, and
-Ising Calibration 1.5 on the first 10. The
+Every row runs on all 100 chips except the models: Qwen, a pilot on the first 8 with pre-release code, and
+Gemma 4 31B and Ising Calibration 1.5 on the first 10. The
 [leaderboard](LEADERBOARD.md) holds the verified entries; [leaderboard/README.md](leaderboard/README.md) explains
 how to submit one.
 Every chip can be calibrated, yet the scripted routine calibrates 44 of 100: the gap to the ceiling is the
@@ -233,9 +234,11 @@ Qwen, with thinking switched on and a 4096-token thinking budget (vision on, tem
 [`nvidia/Ising-Calibration-1.5-31B-BF16`](https://huggingface.co/nvidia/Ising-Calibration-1.5-31B-BF16)), but on
 every turn its thought channel was empty and it answered at once. This is the model, not the harness: served
 identically, its base model Gemma 4 31B thinks at length on the same prompts, and Ising Calibration 1.5 closes the
-thought channel at once even when the channel is opened for it. In our runs, thinking is important for a decent
-score: without it the model never finished discovery (discovery 0.05; most episodes stopped early or looped on
-local-oscillator settings), while Qwen, which thinks, reached 0.92.
+thought channel at once even when the channel is opened for it. Run on the same 10 chips with
+identical settings, the base Gemma 4 31B, which thinks, completed discovery on 9 of 10 chips (discovery
+0.98), scored 0.437 and calibrated 2 of 10; Ising Calibration 1.5 reached discovery 0.05 and scored 0 (most
+episodes stopped early or looped on local-oscillator settings). In our runs, thinking is important for a decent
+score.
 
 
 ## Physics
