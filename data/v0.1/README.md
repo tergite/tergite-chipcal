@@ -129,6 +129,9 @@ characterised, and exploration is welcome.
   [tergite-autocalibration](https://github.com/tergite/tergite-autocalibration).
 - The simulator started from the pulse-level simulator in [tergite-backend](https://github.com/tergite/tergite-backend)
   and was extended to three-level transmons in a qubit-coupler-qubit system.
+- Inspired by NVIDIA's work on AI for quantum calibration: the QCalEval benchmark (S. Cao et al.,
+  [arXiv:2604.25884](https://arxiv.org/abs/2604.25884), 2026) and the NVIDIA Ising Calibration models. No code, data
+  or prompts from either are used.
 
 Tergite is developed by a core group of collaborators; Chalmers Next Labs AB (CNL) manages and maintains this
 project. We are grateful for the collaboration of Chalmers Next Labs AB – WACQT Quantum Technology Testbed, and of
@@ -136,6 +139,9 @@ the Quantum Technology Laboratory (QTL) and the Applied Quantum Physics Laborato
 Technology, MC2.
 
 **Owner:** Chalmers Next Labs AB · **Created:** 2026-10-26 · **License:** Apache-2.0
+
+Model and product names (such as NVIDIA Ising Calibration, Gemma and Qwen) belong to their respective owners. They
+are used only to identify the work and the models referred to; no affiliation or endorsement is implied.
 
 ## Citation
 

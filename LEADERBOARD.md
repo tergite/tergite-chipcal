@@ -14,5 +14,11 @@ recomputed from the submitted episodes, and a model entry's actions can be repla
 | 4 | [Stop immediately](leaderboard/submissions/2026-10-28-probe-stop) | baseline | 100 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 100 | 0.000 | – | code: `probe:stop_immediately` | 2026-10-28 |
 | – | *Physics ceiling (privileged oracle)* | – | 100 | *median 0.986 (0.961–0.996)* | *1* | *100 / 100* | – | – | – | – |
 
+Partial entries (not every frozen chip; not ranked):
+
+| # | Entry | Track | Chips × samples | Score: min final-RB F, mean (95 % CI) | Score / ceiling | Calibrated (F ≥ 0.95) | Invalid / turn | Parse fail / turn | Evidence | Date |
+|---|---|---|---|---|---|---|---|---|---|---|
+| – | [Qwen3.8-27B (pilot)](leaderboard/submissions/2026-10-23-qwen3.8-27b-pilot) | raw | 8 × 1 | 0.331 (0.250–0.493) | 0.337 | 0 / 8 | 0.049 | 0.003 | actions, replayable | 2026-10-23 |
+
 Tracks: **raw**: task description only; **guided**: with a disclosed strategy prompt; **baseline**: code baseline, no model.
 

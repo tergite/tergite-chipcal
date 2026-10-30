@@ -205,7 +205,7 @@ and 5q4c tiers ship as harder settings with the same score.
 | Random valid actions | 100 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 100 | – |
 | Discovery, then a blind default gate | 100 × 1 | 0.255 (0.250–0.266) | 0.259 | 0 / 100 | – |
 | Scripted calibration routine | 100 × 1 | 0.853 (0.807–0.892) | 0.866 | 44 / 100 | – |
-| Qwen3.8-27B, no strategy prompt (pilot)<sup>†</sup> | 8 × 1 | 0.331 (0.250–0.493) | 0.337 | 0 / 8 | 0.003 |
+| [Qwen3.8-27B](leaderboard/submissions/2026-10-23-qwen3.8-27b-pilot), no strategy prompt (pilot)<sup>†</sup> | 8 × 1 | 0.331 (0.250–0.493) | 0.337 | 0 / 8 | 0.003 |
 | *Physics ceiling (privileged oracle, best bias and pulse)* | *100* | *median 0.986 (0.961–0.996)* | *1* | *100 / 100* | – |
 
 Every row runs on all 100 chips except Qwen, a pilot on the first 8 with pre-release code. The
@@ -222,6 +222,9 @@ in the system prompt, i.e. the physics and the order of the calibration chain, p
 This is deliberately not done here: the v0.1 result measures the raw model's ability to calibrate from the
 task description alone, and no strategy prompt is published at this stage. To run your own ablation, pass a
 text file with `--prompt-addendum` to `scripts/evaluate.py`.
+Every turn of the pilot (prompt state, model output including its thinking, action and environment response) is
+on Hugging Face ([transcripts](https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/2q1c/2026-10-23-qwen3.8-27b-pilot)).
+It ran on pre-release code; its actions, in the linked leaderboard folder, replay to the recorded scores on v0.1.1.
 
 
 ## Physics
