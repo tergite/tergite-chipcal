@@ -33,7 +33,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SUBMISSIONS = ROOT / "leaderboard" / "submissions"
 BOARD = ROOT / "LEADERBOARD.md"
 KINDS = ("model", "code")
-TRACKS = {"raw": "task description only", "guided": "with a disclosed strategy prompt",
+TRACKS = {"raw": "task description only", "guided": "with a strategy prompt, identified by its sha256",
           "baseline": "code baseline, no model"}
 REQUIRED = ("name", "kind", "track", "tier", "benchmark", "chipcal_version", "date", "submitter")
 SCORE_TOLERANCE = 1e-6

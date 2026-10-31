@@ -40,6 +40,41 @@ def openai_client(model, base_url, *, api_key='EMPTY', thinking_tokens=4096, top
                         two_pass_reasoning=two_pass, reasoning_max_tokens=thinking_tokens, action_max_tokens=512)
 
 
+def _jsonable(value):
+    """Plain JSON for a dataset dict: complex values split into real and imaginary parts, NaN as null."""
+    import numpy as np
+    if isinstance(value, dict):
+        return {str(k): _jsonable(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_jsonable(v) for v in value]
+    if isinstance(value, np.ndarray):
+        if np.iscomplexobj(value):
+            return {'real': _jsonable(value.real), 'imag': _jsonable(value.imag)}
+        return _jsonable(value.tolist())
+    if isinstance(value, (complex, np.complexfloating)):
+        return {'real': _jsonable(float(value.real)), 'imag': _jsonable(float(value.imag))}
+    if isinstance(value, (np.floating, float)):
+        return float(value) if np.isfinite(value) else None
+    if isinstance(value, np.integer):
+        return int(value)
+    if isinstance(value, np.bool_):
+        return bool(value)
+    return value
+
+
+def save_measurement(folder, turn: int, action: dict, dataset) -> Path:
+    """Write one measurement's simulated data as ``turn_<n>_<node>.json.gz``: {turn, action, dataset}, where dataset
+    is ``xarray.Dataset.to_dict(data="list")`` in plain JSON (the format of the published runs dataset)."""
+    import gzip
+    folder = Path(folder)
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / f"turn_{turn:03d}_{action['node']}.json.gz"
+    record = {'turn': turn, 'action': action, 'dataset': _jsonable(dataset.to_dict(data='list'))}
+    with gzip.open(path, 'wt', 9) as handle:
+        json.dump(record, handle)
+    return path
+
+
 def _checkpoint(env, path: Path) -> None:
     """Pickle the whole environment (state, RNG streams, transcript) atomically."""
     temporary = path.with_suffix('.tmp')
@@ -101,9 +136,9 @@ def run(tier, seed, out, *, client, visual=True, temperature=.7, max_turns=None,
                 turn = env.transcript.turns[-1]
                 ds = observation.measurement_dataset
                 if save_measurements and ds is not None and turn.valid and isinstance(action, dict) and 'node' in action:
-                    from chipcal.sim.device_manifest import encode
-                    atomic_json(out / f'measurement-{turn.index:03d}.json', encode(ds.to_dict(data='array')))
-                    plot_dataset(ds, out / 'plots', stem=f'turn-{turn.index:03d}')
+                    save_measurement(out / 'measurements', turn.index, action, ds)
+                    if not visual:  # a vision model's plots are already in vision/, exactly as it saw them
+                        plot_dataset(ds, out / 'plots', stem=f'turn-{turn.index:03d}')
                 print(json.dumps({'turn': turn.index, 'valid': turn.valid, 'action': action}), flush=True)
                 if outcome.terminated or outcome.truncated:
                     finished = True

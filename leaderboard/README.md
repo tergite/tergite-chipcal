@@ -50,3 +50,22 @@ Commit the folder and the regenerated files, and open a pull request.
 
 Rules: use only what the environment shows the agent (no hidden device parameters, no oracle), the frozen chips of
 the stated benchmark version, and the standard environment settings.
+
+## For maintainers: publishing a model entry
+
+Every model entry on the board has its full run on Hugging Face in
+[tergite/tergite-chipcal-runs](https://huggingface.co/datasets/tergite/tergite-chipcal-runs): transcripts, the plots
+the model saw and the simulated data of every measurement. Publish both together:
+
+1. Set the entry's `meta.json` `link` to `https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/<tier>/<folder>`.
+2. Add the run, replay it to save its measurements (and re-confirm every score), and rewrite the dataset card:
+
+   ```bash
+   python scripts/export_runs.py add leaderboard/submissions/<folder> --results results/<run>
+   python scripts/export_runs.py measure leaderboard/submissions/<folder>     # or --index i per episode, in parallel
+   python scripts/export_runs.py card
+   python scripts/export_runs.py check      # every model entry on the board has its run
+   ```
+
+3. `python scripts/leaderboard.py render`, commit, merge, then upload:
+   `hf upload tergite/tergite-chipcal-runs build/hf-runs . --repo-type dataset`.

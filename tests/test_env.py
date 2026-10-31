@@ -163,6 +163,38 @@ def test_an_interrupted_episode_resumes_exactly(tmp_path):
     assert len(again.turns) == len(whole.turns)          # a completed episode is not rerun
 
 
+def test_saved_measurements_match_a_replay(tmp_path):
+    """A run saves each measurement's data as it goes, identical to what a replay of its actions produces, so a
+    run can be published without replaying it."""
+    import gzip
+    from chipcal import tiers
+    from chipcal.envs.agent_env import Completion
+    from chipcal.run import _jsonable, run
+
+    script = [{"configure_lo": {"channel": "readout", "frequency_hz": 6.8e9}},
+              {"qubit": "q0", "node": "resonator_spectroscopy", "sweeps": {"frequencies": [6.8e9, 4.5e8, 201]}, "shots": 256},
+              {"stop": True}]
+
+    class Scripted:
+        calls = 0
+
+        def generate(self, messages, *, images=None, schema=None, temperature=0):
+            action = script[min(self.calls, len(script) - 1)]
+            self.calls += 1
+            return Completion(text=json.dumps(action), raw={})
+
+    run("2q1c", 3_000_000, tmp_path / "ep", client=Scripted(), visual=False)
+    saved = sorted((tmp_path / "ep" / "measurements").glob("*.json.gz"))
+    assert [p.name for p in saved] == ["turn_002_resonator_spectroscopy.json.gz"]
+    record = json.load(gzip.open(saved[0]))
+    env = tiers.make_env("2q1c", discovery=True)
+    env.reset(seed=3_000_000, chain=tiers.sample("2q1c", 3_000_000).chain)
+    env.step(script[0])
+    replayed = env.step(script[1]).observation.measurement_dataset
+    assert record["turn"] == 2 and record["action"] == script[1]
+    assert record["dataset"] == json.loads(json.dumps(_jsonable(replayed.to_dict(data="list"))))
+
+
 def test_a_failing_analysis_costs_one_observation_not_the_episode(monkeypatch):
     import numpy as np
     from chipcal.envs import chain_agent_env

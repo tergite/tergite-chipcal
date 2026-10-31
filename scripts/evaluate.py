@@ -56,7 +56,7 @@ def run_one(job: dict) -> dict:
         client = openai_client(job["model"], job["base_url"], api_key=job["api_key"], thinking_tokens=job["thinking_tokens"])
         out = Path(job["out"]) / "episodes" / f"{tier}-{seed}-{sample}"
         transcript = run(tier, seed, out, client=client, visual=not job["text_only"], temperature=job["temperature"],
-                         save_measurements=False, discovery=job.get("discovery", True),
+                         save_measurements=job.get("save_measurements", True), discovery=job.get("discovery", True),
                          prompt_addendum=job.get("prompt_addendum"))
         score = transcript.score
         unparseable = sum(1 for t in transcript.turns if isinstance(t.action, dict) and t.action.get("__unparseable__"))
@@ -125,6 +125,9 @@ def main():
     parser.add_argument("--text-only", action="store_true")
     parser.add_argument("--no-discovery", action="store_true", help="start from disclosed single-qubit QOIs")
     parser.add_argument("--prompt-addendum", type=Path, help="text file appended to the system prompt (ablations)")
+    parser.add_argument("--no-save-measurements", action="store_true",
+                        help="model runs: do not save each measurement's simulated data (saved by default, so a run "
+                             "can be published without replaying it)")
     parser.add_argument("--summarize", nargs="+", type=Path, help="print the table for these result directories")
     args = parser.parse_args()
     if args.summarize:
@@ -140,7 +143,7 @@ def main():
                 jobs.append(dict(tier=t, seed=seed, chain=chain, sample=sample, policy=args.policy, model=args.model,
                                  base_url=args.base_url, api_key=args.api_key, thinking_tokens=args.thinking_tokens,
                                  temperature=args.temperature, text_only=args.text_only, out=str(args.out),
-                                 discovery=not args.no_discovery,
+                                 discovery=not args.no_discovery, save_measurements=not args.no_save_measurements,
                                  prompt_addendum=args.prompt_addendum.read_text() if args.prompt_addendum else None))
     i, k = map(int, args.shard.split("/"))
     jobs = jobs[i::k]

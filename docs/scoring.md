@@ -22,6 +22,13 @@ lengths 0–128, 21 random sequences per length and 1000 shots.
   is always a fresh, final benchmark, so repeating benchmarks until a lucky draw gains nothing.
 - **Reproducible.** The final benchmark's random stream depends only on the episode seed and the coupler, so
   a given final configuration always gets the same score.
+- **The device keeps drifting, by design.** The final benchmark sees the chip as it is when the episode ends,
+  including its slow drifts: every qubit's offset charge is redrawn every 300 s of lab time, which changes its
+  charge-parity splitting ([parameters](parameters.md)). On qubits with a small E_J/E_C this splits the |2⟩
+  level by up to a few MHz, enough to detune a CZ tuned in a calmer charge state. Transmons in the lab behave the same
+  way, so a gate that is good only in some charge states scores by luck; a robust gate (typically a shorter
+  pulse) scores reliably. An agent's own benchmark is a snapshot taken when it starts, while it occupies 270 s of
+  lab time, so it may describe a different charge state from the one scored.
 
 **Success** means every coupler has F_i ≥ 0.95.
 

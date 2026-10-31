@@ -92,8 +92,8 @@ measures calibration from measurements.
 
 ## Baselines (2q1c)
 
-All rows on the 100 chips except the models: Qwen, a pilot on the first 8, and Gemma 4 31B and Ising Calibration 1.5
-on the first 10. Verified entries are on the
+All rows on the 100 chips except the models: Qwen, a pilot on the first 8, and Gemma 4 31B (with and without the
+playbook) and Ising Calibration 1.5 on the first 10. Verified entries are on the
 [leaderboard](https://github.com/tergite/tergite-chipcal/blob/main/LEADERBOARD.md).
 Score / ceiling divides each final gate by the best its coupler admits. Every model turn is in
 [tergite/tergite-chipcal-runs](https://huggingface.co/datasets/tergite/tergite-chipcal-runs).
@@ -104,10 +104,11 @@ Score / ceiling divides each final gate by the best its coupler admits. Every mo
 | Scripted calibration routine | 0.853 (0.807–0.892) | 0.866 | 44 / 100 |
 | Qwen3.8-27B, no strategy prompt | 0.331 (0.250–0.493) | 0.337 | 0 / 8 |
 | Gemma 4 31B, no strategy prompt | 0.437 (0.221–0.653) | 0.444 | 2 / 10 |
+| Gemma 4 31B + calibration playbook (guided: an unpublished strategy prompt) | 0.945 (0.903–0.972) | 0.960 | 8 / 10 |
 | NVIDIA Ising Calibration 1.5 (31B), no strategy prompt, score pending: no reasoning tokens produced | 0.000 (0.000–0.000) | 0.000 | 0 / 10 |
 | *Privileged oracle (physics ceiling)* | *median 0.986 (0.961–0.996)* | *1* | *100 / 100* |
 
-Every chip can be calibrated, yet the scripted routine calibrates 44 of 100 and the models at most 2 of 10: the
+Every chip can be calibrated, yet the scripted routine calibrates 44 of 100 and the raw models at most 2 of 10: the
 headroom is in the agent, not the physics. The 3q2c and 5q4c tiers are harder settings with the same score. They add hidden
 flux crosstalk between couplers and weaker couplings.
 
