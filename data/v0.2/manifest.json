@@ -1,0 +1,36 @@
+{
+  "ceiling_search": {
+    "2q1c": "full search (chipcal.baselines.oracle.coupler_full_ceiling): CZ via |11>-|20> and |11>-|02>, first and second harmonic; whole coupler flux range with qubit-coupler hybridization <= 2 %; amplitude <= 1.0, duration <= 2 us; the best fidelity at time zero",
+    "3q2c": "v0.1 search (coupler_best_ceiling: |11>-|20>, first harmonic, coupler >= 0.5 GHz above the qubits), not yet recomputed",
+    "5q4c": "v0.1 search, not yet recomputed"
+  },
+  "changes": "Same chips as v0.1 (seeds and hidden parameters unchanged). 2q1c ceilings recomputed by the full search; the v0.1 value is kept per chip as ceiling_v0_1.",
+  "files": {
+    "2q1c-test.jsonl": {
+      "chips": 100,
+      "first_seed": 3000000,
+      "seeds_scanned": 102,
+      "sha256": "dc6bc19a78c5f5ad0a210cd9cb85a8e63be8320b5c5ecc23c52dd4193d17b7ec",
+      "tier": "2q1c"
+    },
+    "3q2c-test.jsonl": {
+      "chips": 100,
+      "first_seed": 3000000,
+      "seeds_scanned": 103,
+      "sha256": "06b3ce58261c09f092c13a8505e47792c6b4942c08de7f2d9dcc77398d106b11",
+      "tier": "3q2c"
+    },
+    "5q4c-test.jsonl": {
+      "chips": 100,
+      "first_seed": 3000000,
+      "seeds_scanned": 113,
+      "sha256": "22684f19857afe1c9cde46d81bc27378d63dd863ec824fcfa174a0b3f326ddc1",
+      "tier": "5q4c"
+    }
+  },
+  "generator": "chipcal-chips-v0.1",
+  "min_ceiling": 0.96,
+  "selection": "first seeds whose every coupler admits a CZ fidelity >= min_ceiling (privileged best-bias oracle, chipcal.baselines.oracle.coupler_best_ceiling)",
+  "split": "test",
+  "version": "v0.2"
+}

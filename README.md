@@ -4,7 +4,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/leaderboard-2q1c-dark.svg">
-  <img alt="tergite-chipcal 2q1c leaderboard: mean score with 95 % CI for every entry, beside the physics ceiling" src="docs/leaderboard-2q1c-light.svg">
+  <img alt="tergite-chipcal 2q1c leaderboard: chips calibrated with 95 % CI for every entry, beside the physics ceiling" src="docs/leaderboard-2q1c-light.svg">
 </picture>
 
 The [leaderboard](LEADERBOARD.md) on the 2q1c tier. Generated from the submissions by `python scripts/leaderboard.py render`.
@@ -32,7 +32,8 @@ model ([below](#see-what-the-model-sees)).
   any name like `12q-extreme` is a procedural tier: up to 64 qubits, as a grid on multiplexed feedlines, at
   three difficulty presets ([below](#procedural-chips)). The training distribution never runs out.
 - **Solvable by construction.** A privileged oracle certifies that every coupler of every benchmark chip admits a
-  CZ fidelity of at least 0.96. Each chip ships with its ceiling, and results are reported against it.
+  CZ fidelity of at least 0.96 (0.975 on 2q1c, where it searches four CZ routes). Each chip ships with its
+  ceiling, and results are reported against it. The ceiling is a lower bound ([docs/scoring.md](docs/scoring.md)).
 - **A verifiable reward.** Hidden device parameters never reach the agent, its own benchmarks do not count, and
   degenerate policies score 0 ([docs/scoring.md](docs/scoring.md)).
 - **An open, checkable leaderboard.** Entries are pull requests carrying every episode's actions; the simulator
@@ -192,38 +193,47 @@ the final bias currents:
 
 See [docs/scoring.md](docs/scoring.md).
 
-## Benchmark v0.1
+## Benchmark v0.2
 
-`data/v0.1/` freezes the evaluation chips. For each tier it holds the first 100 test seeds whose every coupler
+`data/v0.2/` freezes the evaluation chips. For each tier it holds the first 100 test seeds whose every coupler
 admits a CZ fidelity of at least 0.96, as certified by a privileged oracle that searches each coupler's bias and
 pulse (`chipcal.baselines.oracle`). Every chip is stored with its full hidden parameters, its per-coupler ceilings
-and a checksum. Check it with `python -m chipcal.splits verify data/v0.1`. Training should draw seeds from the
+and a checksum. Check it with `python -m chipcal.splits verify data/v0.2`. Training should draw seeds from the
 train split (`chipcal.tiers.SPLITS`).
 
-So the 0.95 calibration bar is reachable on every benchmark chip, and each score is also reported as
-**score / ceiling**: each final gate against the best its coupler admits ([docs/scoring.md](docs/scoring.md)).
+v0.2 keeps the chips of v0.1 and recomputes the 2q1c ceilings with a full search: both CZ routes (|11⟩ ↔ |20⟩ and
+|11⟩ ↔ |02⟩), their half tones, the coupler's whole flux range (qubit–coupler hybridization at most 2 %) and the
+environment's full pulse range. Every 2q1c chip admits a gate of at least 0.975 (median 0.992). 3q2c and 5q4c keep
+the v0.1 search for now. Episodes run on v0.1 are episodes on the same chips; `data/v0.1/` stays published.
+
+So the 0.95 calibration bar is reachable on every benchmark chip. **Entries are ranked by calibration rate**: the
+fraction of chips whose every final gate reaches F ≥ 0.95. The mean score is reported beside it, along with
+**score / ceiling**: each final gate against the best gate the oracle found for its coupler. The ceiling is a lower
+bound on what the physics allows, and a policy can exceed it ([docs/scoring.md](docs/scoring.md)).
 
 Reported results are for the **2q1c** tier: 2 qubits and 1 coupler, starting from full discovery. The 3q2c
 and 5q4c tiers ship as harder settings with the same score.
 
-| Policy (2q1c) | Chips × samples | Score: min final-RB F, mean (95 % CI) | Score / ceiling | Calibrated (F ≥ 0.95) | Parse failures / turn |
+| Policy (2q1c) | Chips × samples | Calibrated (every final F ≥ 0.95), 95 % CI | Min final-RB F, mean (95 % CI) | Score / ceiling | Parse failures / turn |
 |---|---|---|---|---|---|
-| Stop immediately | 100 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 100 | – |
-| Random valid actions | 100 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 100 | – |
-| Discovery, then a blind default gate | 100 × 1 | 0.255 (0.250–0.266) | 0.259 | 0 / 100 | – |
-| Scripted calibration routine | 100 × 1 | 0.853 (0.807–0.892) | 0.866 | 44 / 100 | – |
-| [Qwen3.8-27B](leaderboard/submissions/2026-10-23-qwen3.8-27b-pilot), no strategy prompt (pilot)<sup>†</sup> | 8 × 1 | 0.331 (0.250–0.493) | 0.337 | 0 / 8 | 0.003 |
-| [Gemma 4 31B](leaderboard/submissions/2026-10-29-gemma-4-31b-it) (base of Ising 1.5), no strategy prompt<sup>‡</sup> | 10 × 1 | 0.437 (0.221–0.653) | 0.444 | 2 / 10 | 0.000 |
-| [Gemma 4 31B + calibration playbook](leaderboard/submissions/2026-10-30-gemma-4-31b-it-playbook) (guided)<sup>§</sup> | 10 × 1 | 0.945 (0.903–0.972) | 0.960 | 8 / 10 | 0.000 |
-| [NVIDIA Ising Calibration 1.5](leaderboard/submissions/2026-10-29-ising-calibration-1.5) (31B), no strategy prompt, score pending: no reasoning tokens produced<sup>‡</sup> | 10 × 1 | 0.000 (0.000–0.000) | 0.000 | 0 / 10 | 0.000 |
-| *Physics ceiling (privileged oracle, best bias and pulse)* | *100* | *median 0.986 (0.961–0.996)* | *1* | *100 / 100* | – |
+| [Gemma 4 31B + calibration playbook](leaderboard/submissions/2026-10-30-gemma-4-31b-it-playbook) (guided)<sup>§</sup> | 100 × 1 | **64 / 100** (54–73 %) | 0.821 (0.765–0.874) | 0.828 | 0.000 |
+| Scripted calibration routine | 100 × 1 | **44 / 100** (35–54 %) | 0.853 (0.807–0.892) | 0.860 | – |
+| [Gemma 4 31B](leaderboard/submissions/2026-10-29-gemma-4-31b-it) (base of Ising 1.5), no strategy prompt<sup>‡</sup> | 10 × 1 | **2 / 10** (6–51 %) | 0.437 (0.221–0.653) | 0.440 | 0.000 |
+| [Qwen3.8-27B](leaderboard/submissions/2026-10-23-qwen3.8-27b-pilot), no strategy prompt<sup>†</sup> | 10 × 1 | **0 / 10** (0–28 %) | 0.315 (0.250–0.445) | 0.318 | 0.006 |
+| [NVIDIA Ising Calibration 1.5](leaderboard/submissions/2026-10-29-ising-calibration-1.5) (31B), no strategy prompt, score pending: no reasoning tokens produced<sup>‡</sup> | 10 × 1 | **0 / 10** (0–28 %) | 0.000 (0.000–0.000) | 0.000 | 0.000 |
+| Discovery, then a blind default gate | 100 × 1 | **0 / 100** (0–4 %) | 0.255 (0.250–0.266) | 0.257 | – |
+| Random valid actions | 100 × 1 | **0 / 100** (0–4 %) | 0.000 (0.000–0.000) | 0.000 | – |
+| Stop immediately | 100 × 1 | **0 / 100** (0–4 %) | 0.000 (0.000–0.000) | 0.000 | – |
+| *Physics ceiling (privileged oracle, full search; a lower bound)* | *100* | *100 / 100* | *median 0.992 (0.975–0.997)* | *1* | – |
 
-Every row runs on all 100 chips except the models: Qwen, a pilot on the first 8 with pre-release code, and
-Gemma 4 31B (with and without the playbook) and Ising Calibration 1.5 on the first 10. The
+Every row runs on all 100 chips except three models, which ran on the first 10: Qwen3.8-27B, Gemma 4 31B without
+the playbook, and Ising Calibration 1.5. The
 [leaderboard](LEADERBOARD.md) holds the verified entries; [leaderboard/README.md](leaderboard/README.md) explains
 how to submit one.
-Every chip can be calibrated, yet the scripted routine calibrates 44 of 100: the gap to the ceiling is the
-agent's, not the physics'. The scripted routine reads only its own measurements; its search ranges were tuned on
+Every chip can be calibrated, yet the best entry calibrates 64 of 100 and the scripted routine 44: the gap to the
+ceiling is the agent's, not the physics'. The two rankings disagree on purpose: the playbook entry calibrates 20
+more chips but has the lower mean, because its misses are broken gates (0 or 0.25) where the scripted routine
+leaves mediocre ones ([docs/scoring.md](docs/scoring.md)). The scripted routine reads only its own measurements; its search ranges were tuned on
 chips of this simulator's distribution.
 
 `python scripts/evaluate.py --summarize results/...` regenerates the table from the episode logs.
@@ -233,9 +243,10 @@ in the system prompt, i.e. the physics and the order of the calibration chain, p
 The rows marked "no strategy prompt" measure the raw model's ability to calibrate from the task description
 alone; the guided row (§) shows what such a prompt does. To run your own ablation, pass a text file with
 `--prompt-addendum` to `scripts/evaluate.py`.
-Every turn of the pilot (prompt state, model output including its thinking, action and environment response) is
+Every turn of the run (prompt state, model output including its thinking, action and environment response) is
 on Hugging Face ([transcripts](https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/2q1c/2026-10-23-qwen3.8-27b-pilot)).
-It ran on pre-release code; its actions, in the linked leaderboard folder, replay to the recorded scores on v0.1.1.
+Its first 8 chips ran on pre-release code and the last 2 on v0.1.1; all its actions, in the linked leaderboard
+folder, replay to the recorded scores on v0.1.1.
 
 <sup>‡</sup> **Note on the Ising Calibration 1.5 row: the score is pending.** The model produced no reasoning tokens,
 and we will rerun it if a version or setting that reasons becomes available. It ran in the same harness as
@@ -252,13 +263,18 @@ Every turn of both runs (prompt state, model output including any thinking, acti
 on Hugging Face: [Gemma 4 31B](https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/2q1c/2026-10-29-gemma-4-31b-it), [Ising Calibration 1.5](https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/2q1c/2026-10-29-ising-calibration-1.5).
 Their actions, in the linked leaderboard folders, replay to the recorded scores.
 
-<sup>§</sup> **Note on the guided row.** The same model, chips and settings as the raw Gemma 4 31B row, with the
+<sup>§</sup> **Note on the guided row.** The same model and settings as the raw Gemma 4 31B row, with the
 maintainers' calibration playbook appended to the system prompt: an 11 kB experimentalist strategy prompt covering
 the physics of each calibration stage, the order of the calibration chain and decision rules for when evidence is
-ambiguous. It lifts Gemma 4 31B from 0.437 to 0.945 and from 2 to 8 calibrated chips of 10. The playbook itself is
-not published; its sha256 is in the entry's `meta.json`, and the model's thinking, which refers to it, is in the
-[transcripts](https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/2q1c/2026-10-30-gemma-4-31b-it-playbook). Both misses are charge-sensitive gates: the final benchmark found them in a different
-offset-charge state from the one they were tuned in (see [docs/scoring.md](docs/scoring.md)).
+ambiguous. On the 10 chips where both ran, it lifts Gemma 4 31B from 2 to 8 calibrated chips (mean 0.437 to 0.945);
+on all 100 chips it calibrates 64. The playbook itself is not published; its sha256 is in the entry's `meta.json`,
+and the model's thinking, which refers to it, is in the
+[transcripts](https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/2q1c/2026-10-30-gemma-4-31b-it-playbook).
+Most misses are long episodes: all 16 broken gates (score 0 or 0.25) come from runs that used the whole 150-turn
+budget. One never completed a gate; the other 15 were still changing theirs in the last turns, so the final
+benchmark found it half-edited, often after a better gate had been benchmarked a few turns earlier. Other misses are charge-sensitive gates that the
+final benchmark found in a different offset-charge state from the one they were tuned in
+([docs/scoring.md](docs/scoring.md)).
 
 
 ## Physics

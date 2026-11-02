@@ -30,17 +30,54 @@ lengths 0–128, 21 random sequences per length and 1000 shots.
   pulse) scores reliably. An agent's own benchmark is a snapshot taken when it starts, while it occupies 270 s of
   lab time, so it may describe a different charge state from the one scored.
 
-**Success** means every coupler has F_i ≥ 0.95.
+**Success** (a calibrated chip) means every coupler has F_i ≥ 0.95.
 
-**Every benchmark chip can succeed.** A privileged oracle (`chipcal.baselines.oracle.coupler_best_ceiling`) reads
-the hidden device and searches each coupler's bias, CZ pulse frequency, amplitude and duration, and local phases
-for the best gate fidelity C_i the physics allows. The bias search stays in the standard tunable-coupler regime,
-with the coupler at least 0.5 GHz above both its qubits, so C_i is a conservative bound. The frozen split keeps only chips whose every coupler has
-C_i ≥ 0.96, a margin above 0.95 for RB fit noise. Each chip's C_i ship with it, and results also report
+## The leaderboard ranks by calibration rate
+
+The headline number of an entry is its **calibration rate**: the fraction of frozen chips it calibrates, with a
+95 % Wilson interval. The mean score is the tie-break and is reported beside it. This matches how a calibration
+engineer judges a run (did I get a usable gate?). Fidelity is a compressed scale with a high floor, so a mean
+score gives a broken run most of a point: a gate at 0.865 has about 13 times the error of a 0.99 gate yet counts
+0.865, and a policy that calibrates more chips can still have the lower mean when its misses are broken gates
+(0 or 0.25) rather than mediocre ones.
+
+The rate is a threshold metric, so chips near 0.95 can fall either side by drift luck, and entries on only 10
+chips have wide intervals (8 / 10 is 49–94 %). RL training should keep the continuous score as the reward; a 0/1
+reward is too sparse. The reward and the headline differ on purpose.
+
+## The physics ceiling
+
+**Every benchmark chip can succeed.** A privileged oracle reads the hidden device and searches each coupler for the
+best CZ fidelity C_i it can find. The frozen split keeps only chips whose every coupler has C_i ≥ 0.96, a margin
+above 0.95 for RB fit noise. Each chip's C_i ship with it, and results also report
 
     score / ceiling = min_i F_i / C_i
 
 so a score reads against what its chip allows.
+
+**Benchmark v0.2 (2q1c): the full search.** `chipcal.baselines.oracle.coupler_full_ceiling`, with every other
+coupler at its reset current, searches:
+
+- four CZ routes: the |11⟩ ↔ |20⟩ resonance (the control qubit's second level) and |11⟩ ↔ |02⟩ (the target's),
+  each driven at its own frequency or at half of it (a half tone);
+- the coupler's whole flux range, above or below the qubits, as long as qubit–coupler hybridization stays at
+  most 2 % (the coupler stays a coupler);
+- pulse amplitudes up to 1.0 and durations up to 2 µs, as the environment allows;
+- the local phases of each gate.
+
+C_i is the best fidelity at time zero. Every 2q1c chip has C_i ≥ 0.975 (median 0.992). The winning routes are
+|11⟩ ↔ |02⟩ on 52 chips, |11⟩ ↔ |20⟩ on 41 and a half tone on 7. Each ceiling gate is also checked over 24
+offset-charge states: it stays at or above 0.95 in all of them on 99 chips, and in 79 % of them on seed 3000086.
+The v0.1 value of each ceiling is kept in the data as `ceiling_v0_1`.
+
+**The ceiling is still a lower bound.** The search is a grid plus local refinement, so a policy can exceed its
+chip's ceiling (score / ceiling above 1). One simulator simplification matters for gates with the coupler parked
+below the qubits, which win on many chips: the qubit–coupler coupling g does not fall with the coupler's frequency
+([physics](physics.md#simplifications)), which makes those gates somewhat optimistic.
+
+**3q2c and 5q4c keep the v0.1 search** until the full search runs on them: one route (|11⟩ ↔ |20⟩, first
+harmonic), the coupler parked at least 0.5 GHz above both qubits, amplitudes up to 0.7 and durations below
+800 ns, at time zero. `data/v0.2/manifest.json` records which search each tier uses.
 
 ## Reported alongside
 

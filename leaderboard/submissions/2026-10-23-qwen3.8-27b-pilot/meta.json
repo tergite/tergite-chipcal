@@ -4,7 +4,7 @@
   "track": "raw",
   "tier": "2q1c",
   "benchmark": "v0.1",
-  "chipcal_version": "0.1.0-pre",
+  "chipcal_version": "0.1.1",
   "date": "2026-10-23",
   "submitter": "tergite-chipcal maintainers",
   "model": "Qwen/Qwen3.8-27B",
@@ -15,6 +15,6 @@
     "model_revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
     "serving": "vLLM 0.28.0, reasoning parser qwen3"
   },
-  "notes": "Pilot on the first 8 frozen chips with pre-release code (v0.1-pre, whose guardrail rescaled wrong-unit values; v0.1 rejects them). Its actions replay to the recorded scores on v0.1.1.",
+  "notes": "First 10 frozen chips. Chips 3000000-3000007 ran on pre-release code (v0.1-pre, whose guardrail rescaled wrong-unit values; v0.1 rejects them) and their actions replay to the recorded scores on v0.1.1; chips 3000008-3000009 ran on v0.1.1 (2026-11-01) with the same settings.",
   "link": "https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/2q1c/2026-10-23-qwen3.8-27b-pilot"
 }

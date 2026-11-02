@@ -62,13 +62,20 @@ def _jsonable(value):
     return value
 
 
+def measurement_node(action) -> str | None:
+    """The node an action measures with: its ``node``, or ``cz_rb`` for a benchmark; None for anything else."""
+    if not isinstance(action, dict):
+        return None
+    return action.get('node') or ('cz_rb' if action.get('benchmark') else None)
+
+
 def save_measurement(folder, turn: int, action: dict, dataset) -> Path:
     """Write one measurement's simulated data as ``turn_<n>_<node>.json.gz``: {turn, action, dataset}, where dataset
     is ``xarray.Dataset.to_dict(data="list")`` in plain JSON (the format of the published runs dataset)."""
     import gzip
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
-    path = folder / f"turn_{turn:03d}_{action['node']}.json.gz"
+    path = folder / f"turn_{turn:03d}_{measurement_node(action)}.json.gz"
     record = {'turn': turn, 'action': action, 'dataset': _jsonable(dataset.to_dict(data='list'))}
     with gzip.open(path, 'wt', 9) as handle:
         json.dump(record, handle)
@@ -135,7 +142,7 @@ def run(tier, seed, out, *, client, visual=True, temperature=.7, max_turns=None,
                 observation = outcome.observation
                 turn = env.transcript.turns[-1]
                 ds = observation.measurement_dataset
-                if save_measurements and ds is not None and turn.valid and isinstance(action, dict) and 'node' in action:
+                if save_measurements and ds is not None and turn.valid and measurement_node(action):
                     save_measurement(out / 'measurements', turn.index, action, ds)
                     if not visual:  # a vision model's plots are already in vision/, exactly as it saw them
                         plot_dataset(ds, out / 'plots', stem=f'turn-{turn.index:03d}')

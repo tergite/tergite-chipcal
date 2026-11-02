@@ -36,6 +36,8 @@ KINDS = ("model", "code")
 TRACKS = {"raw": "task description only", "guided": "with a strategy prompt, identified by its sha256",
           "baseline": "code baseline, no model"}
 REQUIRED = ("name", "kind", "track", "tier", "benchmark", "chipcal_version", "date", "submitter")
+# v0.2 kept the v0.1 chips and recomputed only ceilings, so an episode run on either is an episode on the same chip.
+SAME_CHIPS = ("v0.1", "v0.2")
 SCORE_TOLERANCE = 1e-6
 
 
@@ -71,8 +73,8 @@ def validate(folder: Path) -> list[str]:
         problems.append("meta.json: a code entry names its scripts/evaluate.py --policy")
     if meta.get("track") == "guided" and not meta.get("prompt_addendum_sha256"):
         problems.append("meta.json: the guided track discloses prompt_addendum_sha256")
-    if meta.get("benchmark") != splits.VERSION:
-        problems.append(f"meta.json: benchmark must be {splits.VERSION}")
+    if meta.get("benchmark") not in SAME_CHIPS:
+        problems.append(f"meta.json: benchmark must be one of {SAME_CHIPS}")
     tier = meta.get("tier")
     if tier not in tiers.TIERS:
         return problems + [f"meta.json: tier must be one of {sorted(tiers.TIERS)}"]
@@ -92,8 +94,16 @@ def validate(folder: Path) -> list[str]:
     return problems
 
 
+def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    """95 % Wilson interval of a rate k / n."""
+    p, d = k / n, 1 + z * z / n
+    centre, half = p + z * z / (2 * n), z * np.sqrt(p * (1 - p) / n + z * z / (4 * n * n))
+    return max(0.0, (centre - half) / d), min(1.0, (centre + half) / d)
+
+
 def summary(meta: dict, rows: list[dict]) -> dict:
-    """The board's numbers, recomputed from the episode rows."""
+    """The board's numbers, recomputed from the episode rows. The headline is the calibration rate: the fraction of
+    episodes whose every final gate reaches f_star = 0.95."""
     tier = meta["tier"]
     per_chip: dict[int, list[float]] = {}
     for r in rows:
@@ -106,9 +116,12 @@ def summary(meta: dict, rows: list[dict]) -> dict:
         if finals is not None:
             normalized.append(splits.normalized_score(finals, ceilings))
     turns = sum(r["n_turns"] or 0 for r in rows) or 1
+    calibrated = sum(bool(r["success"]) for r in rows)
+    rate_lo, rate_hi = wilson(calibrated, len(rows))
     return {"chips": len(per_chip), "samples": round(len(rows) / len(per_chip)), "mean": mean, "lo": lo, "hi": hi,
             "normalized": float(np.mean(normalized)) if normalized else None,
-            "calibrated": sum(bool(r["success"]) for r in rows), "episodes": len(rows),
+            "calibrated": calibrated, "episodes": len(rows), "rate": calibrated / len(rows),
+            "rate_lo": rate_lo, "rate_hi": rate_hi,
             "invalid": sum(r["n_invalid_actions"] or 0 for r in rows) / turns,
             "parse": sum(r.get("parse_failures", 0) for r in rows) / turns,
             "complete": set(per_chip) == {c["seed"] for c in splits.benchmark(tier)}}
@@ -145,6 +158,12 @@ def verify(folder: Path, chips: int) -> list[str]:
     return problems
 
 
+def rank_key(entry: tuple[dict, dict, str]):
+    """Calibration rate first, mean score as the tie-break."""
+    meta, s, _ = entry
+    return -s["rate"], -s["mean"], meta["name"]
+
+
 def load_entries() -> list[tuple[dict, dict, str]]:
     """Every submission as (meta, summary, path relative to the repository)."""
     entries = []
@@ -163,8 +182,8 @@ def render() -> str:
     for tier in sorted({m["tier"] for m, _, _ in entries}, key=list(tiers.TIERS).index):
         chips = splits.benchmark(tier)
         ceilings = [min(c["ceiling"]) for c in chips]
-        header = ["| # | Entry | Track | Chips × samples | Score: min final-RB F, mean (95 % CI) | Score / ceiling "
-                  "| Calibrated (F ≥ 0.95) | Invalid / turn | Parse fail / turn | Evidence | Date |",
+        header = ["| # | Entry | Track | Chips × samples | Calibrated (every final F ≥ 0.95), 95 % CI "
+                  "| Min final-RB F, mean (95 % CI) | Score / ceiling | Invalid / turn | Parse fail / turn | Evidence | Date |",
                   "|---|---|---|---|---|---|---|---|---|---|---|"]
 
         def row(rank, meta, s, path):
@@ -174,22 +193,25 @@ def render() -> str:
             evidence = "actions, replayable" if meta["kind"] == "model" else f"code: `{meta['policy']}`"
             parse = f"{s['parse']:.3f}" if meta["kind"] == "model" else "–"
             norm = f"{s['normalized']:.3f}" if s["normalized"] is not None else "–"
-            return (f"| {rank} | {name} | {meta['track']} | {s['chips']} × {s['samples']} | {s['mean']:.3f} "
-                    f"({s['lo']:.3f}–{s['hi']:.3f}) | {norm} | {s['calibrated']} / {s['episodes']} "
+            return (f"| {rank} | {name} | {meta['track']} | {s['chips']} × {s['samples']} "
+                    f"| **{s['calibrated']} / {s['episodes']}** ({100 * s['rate_lo']:.0f}–{100 * s['rate_hi']:.0f} %) "
+                    f"| {s['mean']:.3f} ({s['lo']:.3f}–{s['hi']:.3f}) | {norm} "
                     f"| {s['invalid']:.3f} | {parse} | {evidence} | {meta['date']} |")
 
         tier_entries = [(m, s, p) for m, s, p in entries if m["tier"] == tier]
-        complete = sorted((e for e in tier_entries if e[1]["complete"]), key=lambda e: -e[1]["mean"])
-        partial = sorted((e for e in tier_entries if not e[1]["complete"]), key=lambda e: -e[1]["mean"])
+        complete = sorted((e for e in tier_entries if e[1]["complete"]), key=rank_key)
+        partial = sorted((e for e in tier_entries if not e[1]["complete"]), key=rank_key)
         lines += [f"## {tier} ({len(chips)} frozen chips, benchmark {splits.VERSION})", "", *header]
         lines += [row(i + 1, *e) for i, e in enumerate(complete)]
-        lines += [f"| – | *Physics ceiling (privileged oracle)* | – | {len(chips)} | *median {np.median(ceilings):.3f} "
-                  f"({min(ceilings):.3f}–{max(ceilings):.3f})* | *1* | *{len(chips)} / {len(chips)}* | – | – | – | – |", ""]
+        lines += [f"| – | *Physics ceiling (privileged oracle, a lower bound)* | – | {len(chips)} | *{len(chips)} / {len(chips)}* "
+                  f"| *median {np.median(ceilings):.3f} ({min(ceilings):.3f}–{max(ceilings):.3f})* | *1* | – | – | – | – |", ""]
         if partial:
             lines += ["Partial entries (not every frozen chip; not ranked):", "", *header]
             lines += [row("–", *e) for e in partial]
             lines += [""]
-    lines += ["Tracks: " + "; ".join(f"**{k}**: {v}" for k, v in TRACKS.items()) + ".", ""]
+    lines += ["Ranked by calibration rate (the fraction of chips whose every final gate reaches F ≥ 0.95), then by the "
+              "mean score. Rates carry 95 % Wilson intervals, means 95 % bootstrap intervals.", "",
+              "Tracks: " + "; ".join(f"**{k}**: {v}" for k, v in TRACKS.items()) + ".", ""]
     return "\n".join(lines)
 
 
@@ -219,19 +241,21 @@ def _esc(text: str) -> str:
 
 
 def plot(tier: str, entries: list[tuple[dict, dict, str]], theme: str) -> str:
-    """The tier's board as a static SVG: every entry's mean score with its 95 % CI, beside the physics ceiling."""
+    """The tier's board as a static SVG: every entry's calibration rate with its 95 % CI, beside the physics ceiling
+    (every frozen chip admits a calibrated gate)."""
     c = THEMES[theme]
     chips = splits.benchmark(tier)
     ceilings = [min(ch["ceiling"]) for ch in chips]
-    tier_entries = sorted((e for e in entries if e[0]["tier"] == tier), key=lambda e: (-e[1]["mean"], e[0]["name"]))
-    rows = [{"name": "Physics ceiling (privileged oracle)", "sub": f"{len(chips)} chips · best bias and pulse",
-             "mean": float(np.median(ceilings)), "lo": min(ceilings), "hi": max(ceilings), "kind": "ceiling",
-             "value": f"{np.median(ceilings):.3f}", "note": f"{len(chips)} / {len(chips)} calibratable"}]
+    tier_entries = sorted((e for e in entries if e[0]["tier"] == tier), key=rank_key)
+    rows = [{"name": "Physics ceiling (privileged oracle)",
+             "sub": f"{len(chips)} chips · every chip admits F ≥ {min(ceilings):.3f}, a lower bound",
+             "mean": 1.0, "lo": 1.0, "hi": 1.0, "kind": "ceiling",
+             "value": "100 %", "note": f"median ceiling F {np.median(ceilings):.3f}"}]
     for meta, s, _ in tier_entries:
         scope = f"{s['chips']} chips" if s["complete"] else f"{s['chips']} of {len(chips)} chips, partial"
-        rows.append({"name": meta["name"], "sub": f"{scope} · {meta['track']}", "mean": s["mean"], "lo": s["lo"],
-                     "hi": s["hi"], "kind": meta["kind"], "value": f"{s['mean']:.3f}",
-                     "note": f"{s['calibrated']} / {s['episodes']} calibrated", "caveat": meta.get("caveat")})
+        rows.append({"name": meta["name"], "sub": f"{scope} · {meta['track']}", "mean": s["rate"], "lo": s["rate_lo"],
+                     "hi": s["rate_hi"], "kind": meta["kind"], "value": f"{100 * s['rate']:.0f} %",
+                     "note": f"mean F {s['mean']:.3f}", "caveat": meta.get("caveat")})
 
     pad, row_h, name_size, sub_size = 16, 44, 13, 11
     label_w = max(max(_text_width(r["name"], name_size), _text_width(r["sub"], sub_size),
@@ -247,11 +271,11 @@ def plot(tier: str, entries: list[tuple[dict, dict, str]], theme: str) -> str:
 
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height:.0f}" '
            f'viewBox="0 0 {width} {height:.0f}" font-family="{FONT}" role="img" '
-           f'aria-label="tergite-chipcal {tier} leaderboard: mean score with 95 % confidence interval per entry">']
+           f'aria-label="tergite-chipcal {tier} leaderboard: calibration rate with 95 % confidence interval per entry">']
     out.append(f'<text x="{pad}" y="26" font-size="15" font-weight="600" fill="{c["primary"]}">'
                f'tergite-chipcal leaderboard · {tier}</text>')
-    out.append(f'<text x="{pad}" y="46" font-size="12" fill="{c["secondary"]}">Score: minimum final-RB CZ fidelity '
-               f'over couplers, mean over the frozen chips with 95 % CI. Higher is better.</text>')
+    out.append(f'<text x="{pad}" y="46" font-size="12" fill="{c["secondary"]}">Chips calibrated: every final CZ '
+               f'reaches RB fidelity ≥ 0.95, with 95 % CI. Higher is better.</text>')
     # Legend: model vs code baseline vs ceiling, marks beside text-coloured labels.
     lx = pad
     for kind, label in (("model", "language model"), ("baseline", "code baseline"), ("ceiling", "physics ceiling")):
@@ -272,15 +296,9 @@ def plot(tier: str, entries: list[tuple[dict, dict, str]], theme: str) -> str:
         out.append(f'<line x1="{sx(v):.1f}" y1="{plot_top}" x2="{sx(v):.1f}" y2="{plot_bottom}" '
                    f'stroke="{c["grid"]}" stroke-width="1"/>')
         out.append(f'<text x="{sx(v):.1f}" y="{plot_bottom + 18}" font-size="11" text-anchor="middle" '
-                   f'fill="{c["muted"]}">{v:g}</text>')
+                   f'fill="{c["muted"]}">{100 * v:.0f} %</text>')
     out.append(f'<text x="{(x0 + x1) / 2:.1f}" y="{plot_bottom + 38}" font-size="11" text-anchor="middle" '
-               f'fill="{c["secondary"]}">score (min final-RB fidelity)</text>')
-    for v, label, anchor in ((0.25, "0.25: fully depolarising gate", "start"), (0.95, "calibrated: F ≥ 0.95", "end")):
-        out.append(f'<line x1="{sx(v):.1f}" y1="{plot_top - 6}" x2="{sx(v):.1f}" y2="{plot_bottom}" '
-                   f'stroke="{c["muted"]}" stroke-width="1"/>')
-        dx = 4 if anchor == "start" else -4
-        out.append(f'<text x="{sx(v) + dx:.1f}" y="{plot_top - 8}" font-size="11" text-anchor="{anchor}" '
-                   f'fill="{c["secondary"]}">{label}</text>')
+               f'fill="{c["secondary"]}">chips calibrated</text>')
 
     for i, r in enumerate(rows):
         cy = starts[i] + row_h / 2

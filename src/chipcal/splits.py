@@ -10,8 +10,11 @@ A benchmark chip must be calibratable: the privileged oracle (``chipcal.baseline
 those per-coupler ceilings, so a score can be read against what its chip allows. ``build`` also
 writes the seeds and ceilings into the package (``chipcal/benchmark/``), for code without data/.
 
+v0.2 keeps the v0.1 chips and recomputes the 2q1c ceilings with the full search
+(``chipcal.baselines.oracle.coupler_full_ceiling``); ``data/v0.2/manifest.json`` says which search each tier uses.
+
     python -m chipcal.splits build --out data/v0.1 --n 100 --ceilings ceilings/*.jsonl
-    python -m chipcal.splits verify data/v0.1
+    python -m chipcal.splits verify data/v0.2
 """
 from __future__ import annotations
 
@@ -23,7 +26,7 @@ from pathlib import Path
 from chipcal import tiers
 from chipcal.sim.device_manifest import decode, encode
 
-VERSION = "v0.1"
+VERSION = "v0.2"
 # Every coupler of a benchmark chip admits at least this CZ fidelity, a margin above f_star = 0.95 for RB
 # fit noise and finite calibration precision.
 MIN_CEILING = 0.96
@@ -32,9 +35,9 @@ CEILING_FIELDS = ("fidelity", "leakage", "bias", "flux", "cz_pulse_frequency", "
 INDEX = Path(__file__).parent / "benchmark" / f"{VERSION}.json"
 
 
-def row(tier: str, seed: int) -> dict:
+def row(tier: str, seed: int, version: str = VERSION) -> dict:
     device = tiers.sample(tier, seed)
-    return {"version": VERSION, "generator": tiers.GENERATOR_VERSION, "tier": tier, "seed": int(seed),
+    return {"version": version, "generator": tiers.GENERATOR_VERSION, "tier": tier, "seed": int(seed),
             "split": tiers.split_of(seed), "device": encode(device)}
 
 
@@ -142,7 +145,8 @@ def verify(directory: Path, regenerate: int = 3) -> list[str]:
         for line in text.splitlines()[:regenerate]:
             stored = json.loads(line)
             stored.pop("ceiling", None)
-            if not _same(json.loads(_line(row(stored["tier"], stored["seed"]))), stored):
+            stored.pop("ceiling_v0_1", None)
+            if not _same(json.loads(_line(row(stored["tier"], stored["seed"], manifest["version"]))), stored):
                 problems.append(f"{name}: seed {stored['seed']} no longer regenerates")
     return problems
 

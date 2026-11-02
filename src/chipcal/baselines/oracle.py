@@ -138,3 +138,166 @@ def coupler_best_ceiling(chain, index: int, currents, *, fluxes=None, keep: int 
         if best is None or out["fidelity"] > best["fidelity"]:
             best = {**out, "flux": flux}
     return {**best, "scan": [[round(flux, 4), round(f, 5)] for f, flux, _ in scan]}
+
+
+# ---------------------------------------------------------------------------------------------- full ceiling (v0.2)
+# The v0.1 ceiling searches one CZ route (|11>-|20>, first harmonic) in the standard coupler regime. The full search
+# below tries every route the simulator supports, over the coupler's whole flux range, and checks each gate's
+# robustness over the offset-charge states a session passes through. Privileged, evaluation only.
+SECTORS = ("via_20", "via_02", "via_20/2", "via_02/2")
+FULL_AMPLITUDES = (0.02, 0.05, 0.1, 0.2, 0.35, 0.5, 0.7, 1.0)
+FULL_DURATIONS = np.round(np.r_[np.arange(16e-9, 816e-9, 16e-9), np.arange(848e-9, 2.0e-6 + 1e-12, 48e-9)], 12)
+MAX_HYBRIDIZATION = 0.02          # coupler share of a dressed qubit |1>: above this the qubit is not a clean qubit
+ROBUST_DRAWS = 24                 # offset-charge states (300 s each) the robustness check spans: 2 h of a session
+
+
+def sector_drive(cell, sector: str) -> float:
+    """Drive frequency of a CZ route: |11>-|20> (the 2 on the control) or |11>-|02> (on the target), driven at the
+    exchange frequency or at half of it through the coupler's second harmonic (``/2``)."""
+    e = cell.energies
+    level = cell.idx(2) if sector.startswith("via_20") else cell.idx(target=2)
+    exchange = abs(e[level] - e[cell.idx(1, target=1)])
+    return exchange / (2 if sector.endswith("/2") else 1)
+
+
+def hybridization(cell) -> float:
+    """The largest coupler share of the two qubits' dressed |1> states (0: clean qubits)."""
+    return max(float(abs(cell.dress[cell.idx(bus=1), cell.idx(1)]) ** 2),
+               float(abs(cell.dress[cell.idx(bus=1), cell.idx(target=1)]) ** 2))
+
+
+def _chevron_returns(cell, f0: float, amplitude: float, durations, keep: int = 2) -> list:
+    """Full-swing returns of a chevron from |11>: P(11) back up after a real transfer, ranked by P(11) - leakage."""
+    rho = cell.state(1, 1)
+    freqs = f0 + np.linspace(-3e6, 3e6, 7)
+    p11 = np.zeros((len(freqs), len(durations)))
+    swap = np.zeros_like(p11)
+    for j, d in enumerate(durations):
+        pop = np.real(np.diagonal(cell.flux_pulse_many(rho, freqs, amplitude, d), axis1=-2, axis2=-1))
+        p11[:, j] = pop[:, cell.idx(1, target=1)]
+        swap[:, j] = pop[:, cell.idx(2)] + pop[:, cell.idx(target=2)]
+    leak = 1 - p11 - swap
+    out = []
+    for k, f in enumerate(freqs):
+        s = swap[k]
+        if s.max() < 0.5:
+            continue
+        peak = int(np.argmax(s > 0.5 * s.max()))
+        for j in range(peak + 1, len(durations) - 1):
+            if p11[k, j] >= p11[k, j - 1] and p11[k, j] >= p11[k, j + 1] and swap[k, j] < 0.2:
+                out.append((float(p11[k, j] - leak[k, j]), float(f), float(durations[j])))
+                break
+    return sorted(out, reverse=True)[:keep]
+
+
+def _refine(cells, frequency: float, amplitude: float, duration: float) -> tuple:
+    """Local Nelder-Mead on (frequency, amplitude, duration), the noise branches averaged, phases optimal."""
+    x0 = np.array([frequency, amplitude, duration])
+    scale = np.array([0.5e6, max(0.2 * amplitude, 0.005), 12e-9])
+    lo, hi = LIMITS["duration"]
+
+    def objective(z):
+        f, a, d = x0 + z * scale
+        if not (0 < a <= 1.0 and lo <= d <= hi and f > 0):
+            return 0.0
+        try:
+            return -fidelity_best_phases(cells, f, a, d)[0]
+        except FloatingPointError:
+            return 0.0
+    res = minimize(objective, np.zeros(3), method="Nelder-Mead",
+                   options=dict(maxfev=60, xatol=0.05, fatol=2e-4, initial_simplex=np.vstack([np.zeros(3), np.eye(3)])))
+    f, a, d = x0 + res.x * scale
+    F, leak, zc, zt = fidelity_best_phases(cells, f, a, d)
+    return F, leak, float(f), float(a), float(d), zc, zt
+
+
+def robustness(chain, index: int, currents, gate: dict, draws: int = ROBUST_DRAWS) -> dict:
+    """A fixed gate (phases included) over ``draws`` offset-charge states, sampled mid-interval."""
+    from chipcal.core.config import CommittedConfig
+    cfg = CommittedConfig(parking_current=gate["bias"], cz_pulse_frequency=gate["cz_pulse_frequency"],
+                          cz_pulse_amplitude=gate["cz_pulse_amplitude"], cz_pulse_duration=gate["cz_pulse_duration"],
+                          control_local_phase=gate["control_local_phase"], target_local_phase=gate["target_local_phase"])
+    interval = chain.realism.offset_charge_interval_s if getattr(chain, "realism", None) is not None else 300.0
+    fs = np.array([chainmod.gate_fidelity(chain, index, currents, cfg, time_s=(k + 0.5) * interval)[0]
+                   for k in range(draws)])
+    return {"robust_mean": float(fs.mean()), "robust_min": float(fs.min()), "robust_p10": float(np.percentile(fs, 10)),
+            "robust_frac95": float((fs >= 0.95).mean())}
+
+
+def _screen_flux(chain, index: int, currents, flux: float, amplitudes=FULL_AMPLITUDES, durations=FULL_DURATIONS):
+    """Chevron screen of every route at one coupler flux: ([(score, flux, currents, route, amp, f, d)], skip reason)."""
+    lo, hi = LIMITS["dc_current"]
+    trial = list(currents)
+    trial[index] = bias_for_flux(chain, index, currents, float(flux))
+    if not lo <= trial[index] <= hi:
+        return [], "current out of range"
+    cell = Cell(chainmod.coupler_theta(chain, index, trial), trial[index])
+    if hybridization(cell) > MAX_HYBRIDIZATION:
+        return [], "hybridized"
+    out = []
+    for sector in SECTORS:
+        f0 = sector_drive(cell, sector)
+        if not LIMITS["drive_frequency"][0] <= f0 <= LIMITS["drive_frequency"][1]:
+            continue
+        for amp in amplitudes:
+            try:
+                out += [(score, float(flux), trial, sector, amp, f, d)
+                        for score, f, d in _chevron_returns(cell, f0, amp, durations)]
+            except FloatingPointError:
+                break
+    return out, None
+
+
+def _finish_gate(args) -> dict | None:
+    """Refine one screened point on the full noisy channel and check it over offset-charge states."""
+    chain, index, currents, (score, flux, trial, sector, amp, f, d) = args
+    cells = [(w, Cell(th, trial[index])) for w, th in noise_branches(chainmod.coupler_theta(chain, index, trial))]
+    try:
+        F, leak, f, a, d, zc, zt = _refine(cells, f, amp, d)
+    except FloatingPointError:
+        return None
+    g = {"sector": sector, "flux": flux, "bias": float(trial[index]), "fidelity": F, "leakage": leak,
+         "cz_pulse_frequency": f, "cz_pulse_amplitude": a, "cz_pulse_duration": d,
+         "control_local_phase": zc, "target_local_phase": zt, "screen": score}
+    g.update(robustness(chain, index, trial, g))
+    return g
+
+
+def coupler_full_ceiling(chain, index: int, currents, *, n_flux: int = 16, keep: int = 8, legacy: dict | None = None,
+                         amplitudes=FULL_AMPLITUDES, durations=FULL_DURATIONS, map_fn=map) -> dict:
+    """Best CZ of coupler ``index`` over every route (``SECTORS``), its whole flux range and the environment's pulse
+    limits, the other currents held. Chevrons from |11> screen (flux, route, amplitude); the ``keep`` best returns
+    (at most two per flux and route) are refined on the full noisy channel; each refined gate (and ``legacy``, the
+    v0.1 ceiling gate, if given) is checked over offset-charge states. ``best`` maximises the fidelity at time zero
+    (the v0.1 definition), ``robust`` the mean over offset-charge states. ``map_fn`` (e.g. a process pool's map)
+    parallelises the flux screen and the refinements."""
+    from functools import partial
+    fluxes = [float(x) for x in np.linspace(0.02, 0.5, n_flux)]
+    screened, skipped = [], []
+    for flux, (points, reason) in zip(fluxes, map_fn(partial(_screen_flux, chain, index, list(currents),
+                                                             amplitudes=amplitudes, durations=durations), fluxes)):
+        screened += points
+        if reason:
+            skipped.append([round(flux, 4), reason])
+    screened.sort(key=lambda s: -s[0])
+    picked, seen = [], {}
+    for s in screened:
+        key = (s[1], s[3])
+        if seen.get(key, 0) < 2:
+            picked.append(s)
+            seen[key] = seen.get(key, 0) + 1
+        if len(picked) == keep:
+            break
+    gates = [g for g in map_fn(_finish_gate, [(chain, index, list(currents), p) for p in picked]) if g is not None]
+    if legacy is not None:
+        g = {"sector": "via_20", "legacy_v0.1": True, **{k: legacy[k] for k in (
+            "flux", "bias", "fidelity", "leakage", "cz_pulse_frequency", "cz_pulse_amplitude", "cz_pulse_duration",
+            "control_local_phase", "target_local_phase") if k in legacy}}
+        trial = list(currents)
+        trial[index] = g["bias"]
+        g.update(robustness(chain, index, trial, g))
+        gates.append(g)
+    best = max(gates, key=lambda g: g["fidelity"]) if gates else None
+    robust = max(gates, key=lambda g: g["robust_mean"]) if gates else None
+    return {"coupler": index, "best": best, "robust": robust, "gates": gates, "n_screened": len(screened),
+            "skipped_fluxes": skipped}

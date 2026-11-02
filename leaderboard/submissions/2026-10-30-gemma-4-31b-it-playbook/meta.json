@@ -16,6 +16,6 @@
     "model_revision": "842da3794eaa0b77d5f08bae87a17459d91ff475",
     "serving": "vLLM 0.28.0, reasoning parser gemma4, tensor parallel 2 on A40 GPUs"
   },
-  "notes": "First 10 frozen chips. Guided track: the maintainers' calibration playbook (an 11 kB experimentalist strategy prompt, not published) appended to the system prompt; otherwise identical to the raw Gemma 4 31B entry.",
+  "notes": "All 100 frozen chips: the first 10 run 2026-10-30, the other 90 2026-10-31 to 2026-11-02. Guided track: the maintainers' calibration playbook (an 11 kB experimentalist strategy prompt, not published) appended to the system prompt; otherwise identical to the raw Gemma 4 31B entry. Long episodes span several chained jobs and resume from per-turn checkpoints; the prompt is rebuilt from the restored environment, so a resume is invisible to the model.",
   "link": "https://huggingface.co/datasets/tergite/tergite-chipcal-runs/tree/main/2q1c/2026-10-30-gemma-4-31b-it-playbook"
 }

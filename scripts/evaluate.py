@@ -28,13 +28,14 @@ FIELDS = ("score", "min_true_fidelity", "success", "discovery_fraction", "achiev
           "n_invalid_actions", "lab_time_s")
 
 
-def _chips(tier: str, n: int, data: Path | None):
-    """The first n chips of the frozen split (<tier>-test.jsonl) or of generated chips (<tier>.jsonl) in data."""
+def _chips(tier: str, n: int, data: Path | None, skip: int = 0):
+    """The first n chips of the frozen split (<tier>-test.jsonl) or of generated chips (<tier>.jsonl) in data,
+    leaving out the first ``skip`` of them."""
     for name in (f"{tier}-test.jsonl", f"{tier}.jsonl"):
         if data is not None and (data / name).exists():
-            return [(t, s, d.chain) for t, s, d in splits.load(data / name)[:n]]
+            return [(t, s, d.chain) for t, s, d in splits.load(data / name)[skip:n]]
     lo = tiers.SPLITS["test"][0]
-    return [(tier, seed, tiers.sample(tier, seed).chain) for seed in range(lo, lo + n)]
+    return [(tier, seed, tiers.sample(tier, seed).chain) for seed in range(lo + skip, lo + n)]
 
 
 def run_one(job: dict) -> dict:
@@ -112,10 +113,11 @@ def main():
     parser.add_argument("--policy", default="scripted")
     parser.add_argument("--tier", type=tiers.tier_name, action="append")
     parser.add_argument("--n", type=int, default=30, help="chips per tier (the first n frozen test chips)")
+    parser.add_argument("--skip", type=int, default=0, help="leave out the first k of those chips (extend a partial run)")
     parser.add_argument("--samples", type=int, default=1)
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--shard", default="0/1", help="i/k: run every k-th episode starting at i (one --out per shard)")
-    parser.add_argument("--data", type=Path, default=Path("data/v0.1"))
+    parser.add_argument("--data", type=Path, default=Path("data/v0.2"))
     parser.add_argument("--out", type=Path)
     parser.add_argument("--model", default="Qwen/Qwen3.8-27B")
     parser.add_argument("--base-url", default="http://127.0.0.1:8000/v1")
@@ -138,7 +140,7 @@ def main():
     args.out.mkdir(parents=True, exist_ok=True)
     jobs = []
     for tier in args.tier or sorted(tiers.TIERS):
-        for t, seed, chain in _chips(tier, args.n, args.data):
+        for t, seed, chain in _chips(tier, args.n, args.data, args.skip):
             for sample in range(args.samples):
                 jobs.append(dict(tier=t, seed=seed, chain=chain, sample=sample, policy=args.policy, model=args.model,
                                  base_url=args.base_url, api_key=args.api_key, thinking_tokens=args.thinking_tokens,

@@ -26,10 +26,10 @@ from pathlib import Path
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from leaderboard import ROOT, SCORE_TOLERANCE, load, load_entries, summary  # noqa: E402
+from leaderboard import ROOT, SCORE_TOLERANCE, load, load_entries, rank_key, summary  # noqa: E402
 
 from chipcal import tiers  # noqa: E402
-from chipcal.run import save_measurement  # noqa: E402
+from chipcal.run import measurement_node, save_measurement  # noqa: E402
 
 OUT = ROOT / "build" / "hf-runs"
 REPO = "tergite/tergite-chipcal-runs"
@@ -61,13 +61,22 @@ def add(submission: Path, results: Path, out: Path) -> None:
         shutil.copy2(src / "run.json", ep / "run.json")
         with open(src / "transcript.json", "rb") as f_in, gzip.open(ep / "transcript.json.gz", "wb", 9) as f_out:
             shutil.copyfileobj(f_in, f_out)
-        if (src / "measurements").is_dir():  # saved during the run: no replay needed
-            shutil.copytree(src / "measurements", ep / "measurements", dirs_exist_ok=True)
+        # Only files of turns the final transcript records as measurements: a run that died between saving a
+        # measurement and checkpointing redoes that turn on resume, and the model may then choose differently.
+        turns = json.loads((src / "transcript.json").read_text())["turns"]
+        measured = {(t["index"], measurement_node(t["action"])) for t in turns
+                    if t["valid"] and measurement_node(t["action"])}
+        turn_of = lambda name: int(name.split("_")[1])  # noqa: E731  turn_<n>_...
+        for path in sorted((src / "measurements").glob("turn_*.json.gz")):  # saved during the run: no replay needed
+            if (turn_of(path.name), path.name.split("_", 2)[2][:-len(".json.gz")]) in measured:
+                (ep / "measurements").mkdir(exist_ok=True)
+                shutil.copy2(path, ep / "measurements" / path.name)
         images = ep / "images"
         # A resumed episode keeps its later plots in a second folder; turn numbers are global, so they merge.
         for png in sorted((src / "vision").glob("episode_*/*.png")):
-            images.mkdir(exist_ok=True)
-            shutil.copy2(png, images / png.name)
+            if any(turn_of(png.name) == n and png.stem.endswith(node) for n, node in measured):
+                images.mkdir(exist_ok=True)
+                shutil.copy2(png, images / png.name)
     print(f"added {dest.relative_to(out)}: {len(rows)} episodes")
 
 
@@ -87,7 +96,7 @@ def measure(submission: Path, out: Path, index: int | None = None) -> list[str]:
                 break
             outcome = env.step(action)
             turn, ds = env.transcript.turns[-1], outcome.observation.measurement_dataset
-            if ds is not None and turn.valid and isinstance(action, dict) and "node" in action:
+            if ds is not None and turn.valid and measurement_node(action):
                 save_measurement(folder, turn.index, action, ds)
             if outcome.terminated:
                 break
@@ -115,7 +124,7 @@ def card(out: Path) -> str:
         folder = meta_path.parent
         meta, rows, _ = load(folder)
         runs.append((meta, summary(meta, rows), rows, folder.relative_to(out).as_posix()))
-    runs.sort(key=lambda r: (r[0]["tier"], -r[1]["mean"], r[0]["name"]))
+    runs.sort(key=lambda r: (r[0]["tier"], *rank_key((r[0], r[1], r[3]))))
     n_episodes = sum(len(r[2]) for r in runs)
     n_images = len(list(out.glob("*/*/episodes/*/images/*.png")))
     n_measure = len(list(out.glob("*/*/episodes/*/measurements/*.json.gz")))
@@ -134,19 +143,21 @@ def card(out: Path) -> str:
               "transition frequencies, then calibrate a CZ gate on every coupler, using only lab measurements "
               "(spectroscopy, chevrons, Ramsey phase scans, randomized benchmarking) that cost simulated lab time. "
               "The score is the minimum over couplers of a final interleaved randomized-benchmarking fidelity of the "
-              "gates the agent leaves committed; 0.95 counts as calibrated.", "",
+              "gates the agent leaves committed; a chip whose every final gate reaches 0.95 counts as calibrated, "
+              "and the leaderboard ranks entries by the fraction of chips they calibrate.", "",
               f"This dataset holds the full record behind each model entry on the [leaderboard]({GITHUB}/blob/main/LEADERBOARD.md): "
               f"{len(runs)} runs, {n_episodes} episodes, {n_images} plots and {n_measure} simulated measurements. "
               "The chips themselves are in [tergite/tergite-chipcal](https://huggingface.co/datasets/tergite/tergite-chipcal).", "",
               "> **Simulated data only.** No file describes a physical device. Physics model v0.1, not validated "
               "against hardware.", "", "## Runs", "",
-              "| Run | Model | Track | Chips × samples | Score: mean (95 % CI) | Calibrated (F ≥ 0.95) | Invalid actions / turn | Note |",
+              "| Run | Model | Track | Chips × samples | Calibrated (every final F ≥ 0.95), 95 % CI | Score: mean (95 % CI) | Invalid actions / turn | Note |",
               "|---|---|---|---|---|---|---|---|"]
     for meta, s, _, path in runs:
         rev = meta.get("settings", {}).get("model_revision")
         model = f"[{meta['model']}](https://huggingface.co/{meta['model']})" + (f" @ `{rev[:8]}`" if rev else "")
         lines.append(f"| [{meta['name']}]({path}) | {model} | {meta['track']} | {s['chips']} × {s['samples']} | "
-                     f"{s['mean']:.3f} ({s['lo']:.3f}–{s['hi']:.3f}) | {s['calibrated']} / {s['episodes']} | "
+                     f"**{s['calibrated']} / {s['episodes']}** ({100 * s['rate_lo']:.0f}–{100 * s['rate_hi']:.0f} %) | "
+                     f"{s['mean']:.3f} ({s['lo']:.3f}–{s['hi']:.3f}) | "
                      f"{s['invalid']:.3f} | {meta.get('caveat') or ''} |")
     lines += ["", "Raw track: the model gets only the task description, no strategy prompt. Guided track: a strategy "
               "prompt is appended to the system prompt, identified by its sha256 in `meta.json`. Scores are recomputed "
@@ -232,7 +243,7 @@ def card(out: Path) -> str:
               "**Owner:** Chalmers Next Labs AB · **License:** Apache-2.0", "",
               "## Citation", "", "```bibtex", "@software{tergite_chipcal_2026,",
               "  title   = {tergite-chipcal: a simulated superconducting-qubit chip-calibration environment for LLM agents},",
-              "  author  = {{Chalmers Next Labs AB}},", "  year    = {2026},", "  version = {0.1.1}", "}", "```", ""]
+              "  author  = {{Chalmers Next Labs AB}},", "  year    = {2026},", "  version = {0.2.0}", "}", "```", ""]
     return "\n".join(lines)
 
 

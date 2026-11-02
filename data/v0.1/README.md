@@ -39,7 +39,9 @@ The score is the minimum interleaved-RB fidelity over the chip's couplers.
 
 This dataset holds the evaluation chips: the full hidden parameters of every test chip, so all results are
 reported on the same devices. Every chip can be calibrated: a privileged oracle certifies that each of its
-couplers admits a CZ fidelity of at least 0.96, and the chip's per-coupler ceilings ship with it.
+couplers admits a CZ fidelity of at least 0.96, and the chip's per-coupler ceilings ship with it. The ceilings are
+lower bounds: the oracle searches only the |11⟩ ↔ |20⟩ CZ route in the standard coupler regime, at one
+offset-charge state (see the repository's docs/scoring.md).
 
 > **Simulated data only.** No row describes a physical device. Physics model v0.1, not validated against
 > hardware; see the repository's docs/physics.md for what is modelled and simplified. Built with the help of AI
@@ -106,7 +108,7 @@ Score / ceiling divides each final gate by the best its coupler admits. Every mo
 | Gemma 4 31B, no strategy prompt | 0.437 (0.221–0.653) | 0.444 | 2 / 10 |
 | Gemma 4 31B + calibration playbook (guided: an unpublished strategy prompt) | 0.945 (0.903–0.972) | 0.960 | 8 / 10 |
 | NVIDIA Ising Calibration 1.5 (31B), no strategy prompt, score pending: no reasoning tokens produced | 0.000 (0.000–0.000) | 0.000 | 0 / 10 |
-| *Privileged oracle (physics ceiling)* | *median 0.986 (0.961–0.996)* | *1* | *100 / 100* |
+| *Privileged oracle (physics ceiling, a lower bound)* | *median 0.986 (0.961–0.996)* | *1* | *100 / 100* |
 
 Every chip can be calibrated, yet the scripted routine calibrates 44 of 100 and the raw models at most 2 of 10: the
 headroom is in the agent, not the physics. The 3q2c and 5q4c tiers are harder settings with the same score. They add hidden

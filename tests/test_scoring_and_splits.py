@@ -57,8 +57,9 @@ def test_scripted_discovery_finds_every_line(tier, seeds):
         assert env._n_invalid == 0
 
 
-def test_frozen_split_verifies_and_every_chip_is_calibratable():
-    directory = ROOT / "data" / "v0.1"
+@pytest.mark.parametrize("version", ["v0.1", "v0.2"])
+def test_frozen_split_verifies_and_every_chip_is_calibratable(version):
+    directory = ROOT / "data" / version
     if not directory.exists():
         pytest.skip("no frozen split built")
     assert splits.verify(directory, regenerate=2) == []
@@ -69,6 +70,21 @@ def test_frozen_split_verifies_and_every_chip_is_calibratable():
         assert all(len(r["ceiling"]) == tiers.TIERS[tier].n_qubits - 1 for r in rows)
         assert min(c["fidelity"] for r in rows for c in r["ceiling"]) >= splits.MIN_CEILING
         assert [r["seed"] for r in rows] == [chip["seed"] for chip in splits.benchmark(tier)]
+        if version == splits.VERSION:
+            assert [[c["fidelity"] for c in r["ceiling"]] for r in rows] == [chip["ceiling"] for chip in splits.benchmark(tier)]
+
+
+def test_v0_2_keeps_the_v0_1_chips_and_raises_no_ceiling():
+    old, new = ROOT / "data" / "v0.1", ROOT / "data" / "v0.2"
+    if not (old.exists() and new.exists()):
+        pytest.skip("no frozen splits built")
+    for tier in tiers.TIERS:
+        a = [json.loads(line) for line in (old / f"{tier}-test.jsonl").read_text().splitlines()]
+        b = [json.loads(line) for line in (new / f"{tier}-test.jsonl").read_text().splitlines()]
+        assert [(r["seed"], r["device"]) for r in a] == [(r["seed"], r["device"]) for r in b]
+        for r_old, r_new in zip(a, b):
+            assert r_new.get("ceiling_v0_1", r_new["ceiling"]) == r_old["ceiling"]
+            assert all(n["fidelity"] >= o["fidelity"] - 1e-9 for n, o in zip(r_new["ceiling"], r_old["ceiling"]))
 
 
 def test_build_keeps_only_chips_whose_every_coupler_reaches_the_ceiling(tmp_path):
